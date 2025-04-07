@@ -37,7 +37,7 @@ class Stats(BaseCategory):
     def player_steam_id(self) -> int:
         return int(self._base.pointer_walk(0xA8, 0xC8, 0x14).read_string()[1:], 16)
 
-class Atributes(BaseCategory):
+class Attributes(BaseCategory):
     def __init__(self, root: MemoryPointer) -> None:
         pattern: bytes = rb"\x48\x8B\x05....\x48\x8B\x58\x38\x48\x85\xDB\x74.\xF6"
         super().__init__(root, pattern)
@@ -170,7 +170,7 @@ class Covenants(BaseCategory):
                 rank_path=[0xD0, 0x490, 0x1BA]
             )
 
-class OnlineSeasion(BaseCategory):
+class OnlineSession(BaseCategory):
     def __init__(self, root: MemoryPointer) -> None:
         pattern: bytes = rb"\x48\x8B\x0D....\x48\x85\xC9\x74.\x48\x8B\x49\x18\xE8"
         super().__init__(root, pattern)
@@ -183,6 +183,6 @@ class DS2Memory:
         root = MemoryPointer("DarkSoulsII.exe", "DarkSoulsII.exe")
 
         self.stats = Stats(root)
-        self.atributes = Atributes(root)
+        self.attributes = Attributes(root)
         self.covenants = Covenants(root)
-        self.online = OnlineSeasion(root)
+        self.online = OnlineSession(root)
