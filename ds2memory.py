@@ -114,17 +114,59 @@ class Covenants(BaseCategory):
         pattern = rb"\x48\x8B\x05....\x48\x8B\x58\x38\x48\x85\xDB\x74.\xF6"
         super().__init__(root, pattern)
 
-    self.brotherhood_of_blood = Covenant(
-            self._base,
-            points_path=[0xD0, 0x490, 0x1C8],
-            rank_path=[0xD0, 0x490, 0x1BB]
-        )
-    
-    self.blue_sentinels = Covenant(
-            self._base,
-            points_path=[0xD0, 0x490, 0x1C6],
-            rank_path=[0xD0, 0x490, 0x1BA]
-        )
+        self.heirs_of_the_sun = Covenant(
+                self._base,
+                points_path=[0xD0, 0x490, 0x1C4],
+                rank_path=[0xD0, 0x490, 0x1B9]
+            )
+
+        self.way_of_blue = Covenant(
+                self._base,
+                points_path=[0xD0, 0x490, 0x1CA],
+                rank_path=[0xD0, 0x490, 0x1BC]
+            )
+
+        self.rat_king = Covenant(
+                self._base,
+                points_path=[0xD0, 0x490, 0x1CC],
+                rank_path=[0xD0, 0x490, 0x1BD]
+            )
+
+        self.bell_keeper = Covenant(
+                self._base,
+                points_path=[0xD0, 0x490, 0x1CE],
+                rank_path=[0xD0, 0x490, 0x1BE]
+            )
+
+        self.dragon_remnants = Covenant(
+                self._base,
+                points_path=[0xD0, 0x490, 0x1D0],
+                rank_path=[0xD0, 0x490, 0x1BF]
+            )
+        
+        self.company_of_champions = Covenant(
+                self._base,
+                points_path=[0xD0, 0x490, 0x1D2],
+                rank_path=[0xD0, 0x490, 0x1C0]
+            )
+        
+        self.pilgrims_of_dark = Covenant(
+                self._base,
+                points_path=[0xD0, 0x490, 0x1D4],
+                rank_path=[0xD0, 0x490, 0x1C1]
+            )
+
+        self.brotherhood_of_blood = Covenant(
+                self._base,
+                points_path=[0xD0, 0x490, 0x1C8],
+                rank_path=[0xD0, 0x490, 0x1BB]
+            )
+        
+        self.blue_sentinels = Covenant(
+                self._base,
+                points_path=[0xD0, 0x490, 0x1C6],
+                rank_path=[0xD0, 0x490, 0x1BA]
+            )
 
 class OnlineSeasion(BaseCategory):
     def __init__(self, root):
@@ -141,3 +183,4 @@ class DS2Memory:
         self.stats = Stats(root)
         self.atributes = Atributes(root)
         self.covenants = Covenants(root)
+        self.online = OnlineSeasion(root)
