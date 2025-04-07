@@ -31,55 +31,55 @@ class Atributes(BaseCategory):
     def player_level(self):
         return self._base.pointer_walk(0xD0, 0x490, 0xd0).read_int()
 
-    def palyer_vigor(self, root):
+    def player_vigor(self, root):
         return int.from_bytes(
             self._base.pointer_walk(0xD0, 0x490, 0x8).read_bytes(2),
             byteorder='little'
         )
     
-    def palyer_attunement(self, root):
+    def player_attunement(self, root):
         return int.from_bytes(
             self._base.pointer_walk(0xD0, 0x490, 0xE).read_bytes(2),
             byteorder='little'
         )
 
-    def palyer_endurance(self, root):
+    def player_endurance(self, root):
         return int.from_bytes(
             self._base.pointer_walk(0xD0, 0x490, 0xA).read_bytes(2),
             byteorder='little'
         )
 
-    def palyer_vitality(self, root):
+    def player_vitality(self, root):
         return int.from_bytes(
             self._base.pointer_walk(0xD0, 0x490, 0xC).read_bytes(2),
             byteorder='little'
         )
 
-    def palyer_strenght(self, root):
+    def player_strenght(self, root):
         return int.from_bytes(
             self._base.pointer_walk(0xD0, 0x490, 0x10).read_bytes(2),
             byteorder='little'
         )
 
-    def palyer_dexterity(self, root):
+    def player_dexterity(self, root):
         return int.from_bytes(
             self._base.pointer_walk(0xD0, 0x490, 0x12).read_bytes(2),
             byteorder='little'
         )
 
-    def palyer_adaptability(self, root):
+    def player_adaptability(self, root):
         return int.from_bytes(
             self._base.pointer_walk(0xD0, 0x490, 0x18).read_bytes(2),
             byteorder='little'
         )
 
-    def palyer_intelligence(self, root):
+    def player_intelligence(self, root):
         return int.from_bytes(
             self._base.pointer_walk(0xD0, 0x490, 0x14).read_bytes(2),
             byteorder='little'
         )
 
-    def palyer_faith(self, root):
+    def player_faith(self, root):
         return int.from_bytes(
             self._base.pointer_walk(0xD0, 0x490, 0x16).read_bytes(2),
             byteorder='little'
