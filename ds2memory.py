@@ -13,12 +13,24 @@ class Stats(BaseCategory):
 
     def player_health(self):
         return self._base.pointer_walk(0xD0, 0x168).read_int()
+    
+    def player_min_health(self):
+        return self._base.pointer_walk(0xD0, 0x16C).read_int()
 
     def player_max_health(self):
         return self._base.pointer_walk(0xD0, 0x170).read_int()
+    
+    def player_stamina(self):
+        return self._base.pointer_walk(0xD0, 0x1AC).read_float()
+    
+    def player_max_stamina(self):
+        return self._base.pointer_walk(0xD0, 0x1B4).read_float()
 
     def player_name(self):
         return self._base.pointer_walk(0xA8, 0xC0, 0x24).read_bytes(50).decode("utf-16-le")
+
+    def team_type(self):
+        return ord(self._base.pointer_walk(0xD0, 0xB0, 0x3D).read_bytes(1))
 
     def player_steam_id(self):
         return int(self._base.pointer_walk(0xA8, 0xC8, 0x14).read_string()[1:], 16)
@@ -31,55 +43,55 @@ class Atributes(BaseCategory):
     def player_level(self):
         return self._base.pointer_walk(0xD0, 0x490, 0xd0).read_int()
 
-    def player_vigor(self, root):
+    def player_vigor(self):
         return int.from_bytes(
             self._base.pointer_walk(0xD0, 0x490, 0x8).read_bytes(2),
             byteorder='little'
         )
     
-    def player_attunement(self, root):
+    def player_attunement(self):
         return int.from_bytes(
             self._base.pointer_walk(0xD0, 0x490, 0xE).read_bytes(2),
             byteorder='little'
         )
 
-    def player_endurance(self, root):
+    def player_endurance(self):
         return int.from_bytes(
             self._base.pointer_walk(0xD0, 0x490, 0xA).read_bytes(2),
             byteorder='little'
         )
 
-    def player_vitality(self, root):
+    def player_vitality(self):
         return int.from_bytes(
             self._base.pointer_walk(0xD0, 0x490, 0xC).read_bytes(2),
             byteorder='little'
         )
 
-    def player_strenght(self, root):
+    def player_strenght(self):
         return int.from_bytes(
             self._base.pointer_walk(0xD0, 0x490, 0x10).read_bytes(2),
             byteorder='little'
         )
 
-    def player_dexterity(self, root):
+    def player_dexterity(self):
         return int.from_bytes(
             self._base.pointer_walk(0xD0, 0x490, 0x12).read_bytes(2),
             byteorder='little'
         )
 
-    def player_adaptability(self, root):
+    def player_adaptability(self):
         return int.from_bytes(
             self._base.pointer_walk(0xD0, 0x490, 0x18).read_bytes(2),
             byteorder='little'
         )
 
-    def player_intelligence(self, root):
+    def player_intelligence(self):
         return int.from_bytes(
             self._base.pointer_walk(0xD0, 0x490, 0x14).read_bytes(2),
             byteorder='little'
         )
 
-    def player_faith(self, root):
+    def player_faith(self):
         return int.from_bytes(
             self._base.pointer_walk(0xD0, 0x490, 0x16).read_bytes(2),
             byteorder='little'
@@ -113,7 +125,15 @@ class Covenants(BaseCategory):
             points_path=[0xD0, 0x490, 0x1C6],
             rank_path=[0xD0, 0x490, 0x1BA]
         )
+
+class OnlineSeasion(BaseCategory):
+    def __init__(self, root):
+        pattern = rb"\x48\x8B\x0D....\x48\x85\xC9\x74.\x48\x8B\x49\x18\xE8"
+        super().__init__(root, pattern)
     
+    def alloted_time(self):
+        return self._base.pointer_walk(0x20, 0x17C).read_float()
+
 class DS2Memory:
     def __init__(self):
         root = MemoryPointer("DarkSoulsII.exe", "DarkSoulsII.exe")
@@ -121,8 +141,3 @@ class DS2Memory:
         self.stats = Stats(root)
         self.atributes = Atributes(root)
         self.covenants = Covenants(root)
-
-if __name__ == "__main__":
-    ds2 = DS2Memory()
-
-    print(ds2.stats.player_max_health())
