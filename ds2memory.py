@@ -174,9 +174,34 @@ class OnlineSession(BaseCategory):
     def __init__(self, root: MemoryPointer) -> None:
         pattern: bytes = rb"\x48\x8B\x0D....\x48\x85\xC9\x74.\x48\x8B\x49\x18\xE8"
         super().__init__(root, pattern)
-    
+
     def alloted_time(self) -> float:
         return self._base.pointer_walk(0x20, 0x17C).read_float()
+
+class AttackState(BaseCategory):
+    def __init__(self, root: MemoryPointer) -> None:
+        pattern: bytes = rb"\x48\x8B\x05....\x48\x8B\x58\x38\x48\x85\xDB\x74.\xF6"
+        super().__init__(root, pattern)
+    
+    def guard_control_1(self) -> int:
+        return int.from_bytes(
+            self._base.pointer_walk(0xD0, 0xC0, 0x78).read_bytes(1),
+            byteorder="little"
+        )
+    
+    def guard_control_2(self) -> int:
+        return int.from_bytes(
+            self._base.pointer_walk(0xD0, 0xC0, 0x7C).read_bytes(1),
+            byteorder="little"
+        )
+
+class Equipment(BaseCategory):
+    def __init__(self, root: MemoryPointer) -> None:
+        pattern: bytes = rb"\x48\x8B\x05....\x48\x8B\x58\x38\x48\x85\xDB\x74.\xF6"
+        super().__init__(root, pattern)
+    
+    def right_hand_slot_1(self) -> int:
+        return self._base.pointer_walk(0xD0, 0x378, 0xB0).read_int()
 
 class DS2Memory:
     def __init__(self) -> None:
@@ -186,3 +211,5 @@ class DS2Memory:
         self.attributes = Attributes(root)
         self.covenants = Covenants(root)
         self.online = OnlineSession(root)
+        self.attak_state = AttackState(root)
+        self.equipment = Equipment(root)
