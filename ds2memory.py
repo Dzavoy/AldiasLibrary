@@ -169,6 +169,12 @@ class Covenants(BaseCategory):
                 points_path=[0xD0, 0x490, 0x1C6],
                 rank_path=[0xD0, 0x490, 0x1BA]
             )
+        
+    def current_covenant(self) -> int:
+        return int.from_bytes(
+            self._base.pointer_walk(0xD0, 0x490, 0x1AD).read_bytes(1),
+            byteorder='little'
+        )
 
 class OnlineSession(BaseCategory):
     def __init__(self, root: MemoryPointer) -> None:
@@ -183,25 +189,58 @@ class AttackState(BaseCategory):
         pattern: bytes = rb"\x48\x8B\x05....\x48\x8B\x58\x38\x48\x85\xDB\x74.\xF6"
         super().__init__(root, pattern)
     
-    def guard_control_1(self) -> int:
+    def guard_state_1(self) -> int:
         return int.from_bytes(
             self._base.pointer_walk(0xD0, 0xC0, 0x78).read_bytes(1),
             byteorder="little"
         )
     
-    def guard_control_2(self) -> int:
+    def guard_state_2(self) -> int:
         return int.from_bytes(
             self._base.pointer_walk(0xD0, 0xC0, 0x7C).read_bytes(1),
             byteorder="little"
         )
 
+class Rings:
+    def __init__(
+        self,
+        base: MemoryPointer,
+        slot_1_path: list[int],
+        slot_2_path: list[int],
+        slot_3_path: list[int],
+        slot_4_path: list[int]
+    ) -> None:
+
+        self._base = base
+        self.slot_1_path = slot_1_path
+        self.slot_2_path = slot_2_path
+        self.slot_3_path = slot_3_path
+        self.slot_4_path = slot_4_path
+    
+    def slot_1(self) -> int:
+        return self._base.pointer_walk(*self.slot_1_path).read_int()
+    
+    def slot_2(self) -> int:
+        return self._base.pointer_walk(*self.slot_2_path).read_int()
+
+    def slot_3(self) -> int:
+        return self._base.pointer_walk(*self.slot_3_path).read_int()
+    
+    def slot_4(self) -> int:
+        return self._base.pointer_walk(*self.slot_4_path).read_int()
+
 class Equipment(BaseCategory):
     def __init__(self, root: MemoryPointer) -> None:
         pattern: bytes = rb"\x48\x8B\x05....\x48\x8B\x58\x38\x48\x85\xDB\x74.\xF6"
         super().__init__(root, pattern)
-    
-    def right_hand_slot_1(self) -> int:
-        return self._base.pointer_walk(0xD0, 0x378, 0xB0).read_int()
+
+        self.rings = Rings(
+            self._base,
+            slot_1_path=[0xD0, 0x378, 0x4E8],
+            slot_2_path=[0xD0, 0x378, 0x4EC],
+            slot_3_path=[0xD0, 0x378, 0x4F0],
+            slot_4_path=[0xD0, 0x378, 0x4F4]
+            )
 
 class DS2Memory:
     def __init__(self) -> None:
