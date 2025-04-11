@@ -7,3 +7,9 @@ json_whriter.py
 main.py
 storage.py
 test.py
+
+covenats_ids.json
+rings_ids.json
+tem_type_ids.json
+weapons_ids.json
+items.json
