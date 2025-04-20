@@ -323,6 +323,3 @@ class DS2Memory:
         self.online = OnlineSession(root)
         self.attak_state = AttackState(root)
         self.equipment = Equipment(root)
-
-ds2 = DS2Memory()
-print(ds2.covenants.current_covenant())
