@@ -172,7 +172,7 @@ class Covenants(BaseCategory):
             )
         
         with open("covenants_ids.json", "r", encoding='utf-8') as file:
-            self.id = json.load(file)
+            self.id: dict[str, str] = json.load(file)
         
     def current_covenant(self) -> str:
         return self.id[str(int.from_bytes(
@@ -214,7 +214,7 @@ class Rings:
         self.slot_4_path = slots_paths[3]
 
         with open("rings_ids.json", "r", encoding='utf-8') as file:
-            self.id = json.load(file)
+            self.id: dict[str, str] = json.load(file)
     
     def slot_1(self) -> str:
         return self.id[str(self._base.pointer_walk(*self.slot_1_path).read_int())]
@@ -236,7 +236,7 @@ class Weapons:
         self.slot_3_path = slots_paths[2]
 
         with open("weapons_ids.json", "r", encoding='utf-8') as file:
-            self.id = json.load(file)
+            self.id: dict[str, str] = json.load(file)
 
     def slot_1(self) -> str:
         return self.id[str(self._base.pointer_walk(*self.slot_1_path).read_int())]
@@ -256,7 +256,7 @@ class Armors:
         self._legs_path = slots_paths[3]
 
         with open("armors_ids.json", "r", encoding='utf-8') as file:
-            self.id = json.load(file)
+            self.id: dict[str, str] = json.load(file)
 
     def head(self) -> str:
         return self.id[str(self._base.pointer_walk(*self._head_path).read_int())]
@@ -321,5 +321,5 @@ class DS2Memory:
         self.attributes = Attributes(root)
         self.covenants = Covenants(root)
         self.online = OnlineSession(root)
-        self.attak_state = AttackState(root)
+        self.attack_state = AttackState(root)
         self.equipment = Equipment(root)
