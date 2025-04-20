@@ -1,4 +1,5 @@
 from mempointer import MemoryPointer
+import json
 
 class BaseCategory:
     _base: MemoryPointer
@@ -202,32 +203,28 @@ class AttackState(BaseCategory):
         )
 
 class Rings:
-    def __init__(
-        self,
-        base: MemoryPointer,
-        slot_1_path: list[int],
-        slot_2_path: list[int],
-        slot_3_path: list[int],
-        slot_4_path: list[int]
-    ) -> None:
+    def __init__(self, base: MemoryPointer, slots_paths: list[list[int]]) -> None:
 
         self._base = base
-        self.slot_1_path = slot_1_path
-        self.slot_2_path = slot_2_path
-        self.slot_3_path = slot_3_path
-        self.slot_4_path = slot_4_path
+        self.slot_1_path = slots_paths[0]
+        self.slot_2_path = slots_paths[1]
+        self.slot_3_path = slots_paths[2]
+        self.slot_4_path = slots_paths[3]
+
+        with open("rings_ids.json", "r", encoding='utf-8') as file:
+            self.id = json.load(file)
     
     def slot_1(self) -> int:
-        return self._base.pointer_walk(*self.slot_1_path).read_int()
+        return self.id[str(self._base.pointer_walk(*self.slot_1_path).read_int())]
     
     def slot_2(self) -> int:
-        return self._base.pointer_walk(*self.slot_2_path).read_int()
+        return self.id[str(self._base.pointer_walk(*self.slot_2_path).read_int())]
 
     def slot_3(self) -> int:
-        return self._base.pointer_walk(*self.slot_3_path).read_int()
+        return self.id[str(self._base.pointer_walk(*self.slot_3_path).read_int())]
     
     def slot_4(self) -> int:
-        return self._base.pointer_walk(*self.slot_4_path).read_int()
+        return self.id[str(self._base.pointer_walk(*self.slot_4_path).read_int())]
 
 class Equipment(BaseCategory):
     def __init__(self, root: MemoryPointer) -> None:
@@ -236,11 +233,13 @@ class Equipment(BaseCategory):
 
         self.rings = Rings(
             self._base,
-            slot_1_path=[0xD0, 0x378, 0x4E8],
-            slot_2_path=[0xD0, 0x378, 0x4EC],
-            slot_3_path=[0xD0, 0x378, 0x4F0],
-            slot_4_path=[0xD0, 0x378, 0x4F4]
-            )
+            slots_paths = [
+                [0xD0, 0x378, 0x4E8],
+                [0xD0, 0x378, 0x4EC],
+                [0xD0, 0x378, 0x4F0],
+                [0xD0, 0x378, 0x4F4]
+            ]
+        )
 
 class DS2Memory:
     def __init__(self) -> None:
