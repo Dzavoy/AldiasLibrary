@@ -9,7 +9,6 @@ storage.py
 test.py
 
 covenants_ids.json
-rings_ids.json
 team_type_ids.json
 weapons_ids.json
 items.json
