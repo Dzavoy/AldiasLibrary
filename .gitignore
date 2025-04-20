@@ -8,7 +8,5 @@ main.py
 storage.py
 test.py
 
-covenants_ids.json
 team_type_ids.json
-weapons_ids.json
 items.json
