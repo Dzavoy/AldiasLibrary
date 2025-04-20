@@ -171,11 +171,14 @@ class Covenants(BaseCategory):
                 rank_path=[0xD0, 0x490, 0x1BA]
             )
         
-    def current_covenant(self) -> int:
-        return int.from_bytes(
-            self._base.pointer_walk(0xD0, 0x490, 0x1AD).read_bytes(1),
-            byteorder='little'
-        )
+        with open("covenants_ids.json", "r", encoding='utf-8') as file:
+            self.id = json.load(file)
+        
+    def current_covenant(self) -> str:
+        return self.id[str(int.from_bytes(
+                self._base.pointer_walk(0xD0, 0x490, 0x1AD).read_bytes(1),
+                byteorder='little'
+                ))]
 
 class OnlineSession(BaseCategory):
     def __init__(self, root: MemoryPointer) -> None:
@@ -204,7 +207,6 @@ class AttackState(BaseCategory):
 
 class Rings:
     def __init__(self, base: MemoryPointer, slots_paths: list[list[int]]) -> None:
-
         self._base = base
         self.slot_1_path = slots_paths[0]
         self.slot_2_path = slots_paths[1]
@@ -226,6 +228,48 @@ class Rings:
     def slot_4(self) -> str:
         return self.id[str(self._base.pointer_walk(*self.slot_4_path).read_int())]
 
+class Weapons:
+    def __init__(self, base: MemoryPointer, slots_paths: list[list[int]]) -> None:
+        self._base = base
+        self.slot_1_path = slots_paths[0]
+        self.slot_2_path = slots_paths[1]
+        self.slot_3_path = slots_paths[2]
+
+        with open("weapons_ids.json", "r", encoding='utf-8') as file:
+            self.id = json.load(file)
+
+    def slot_1(self) -> str:
+        return self.id[str(self._base.pointer_walk(*self.slot_1_path).read_int())]
+        
+    def slot_2(self) -> str:
+        return self.id[str(self._base.pointer_walk(*self.slot_2_path).read_int())]
+        
+    def slot_3(self) -> str:
+        return self.id[str(self._base.pointer_walk(*self.slot_3_path).read_int())]
+
+class Armors:
+    def __init__(self, base: MemoryPointer, slots_paths: list[list[int]]) -> None:
+        self._base = base
+        self._head_path = slots_paths[0]
+        self._chest_path = slots_paths[1]
+        self._hands_path = slots_paths[2]
+        self._legs_path = slots_paths[3]
+
+        with open("armors_ids.json", "r", encoding='utf-8') as file:
+            self.id = json.load(file)
+
+    def head(self) -> str:
+        return self.id[str(self._base.pointer_walk(*self._head_path).read_int())]
+    
+    def chest(self) -> str:
+        return self.id[str(self._base.pointer_walk(*self._chest_path).read_int())]
+
+    def hands(self) -> str:
+        return self.id[str(self._base.pointer_walk(*self._hands_path).read_int())]
+    
+    def legs(self) -> str:
+        return self.id[str(self._base.pointer_walk(*self._legs_path).read_int())]
+
 class Equipment(BaseCategory):
     def __init__(self, root: MemoryPointer) -> None:
         pattern: bytes = rb"\x48\x8B\x05....\x48\x8B\x58\x38\x48\x85\xDB\x74.\xF6"
@@ -241,6 +285,34 @@ class Equipment(BaseCategory):
             ]
         )
 
+        self.right_hand = Weapons(
+            self._base,
+            slots_paths = [
+                [0xD0, 0x378, 0xB0],
+                [0xD0, 0x378, 0xD8],
+                [0xD0, 0x378, 0x100]
+            ]
+        )
+
+        self.left_hand = Weapons(
+            self._base,
+            slots_paths = [
+                [0xD0, 0x378, 0x9C],
+                [0xD0, 0x378, 0xC4],
+                [0xD0, 0x378, 0xEC]
+            ]
+        )
+
+        self.armor = Armors(
+            self._base,
+            slots_paths = [
+                [0xD0, 0x378, 0x114],
+                [0xD0, 0x378, 0x128],
+                [0xD0, 0x378, 0x13C],
+                [0xD0, 0x378, 0x150]
+            ]
+        )
+
 class DS2Memory:
     def __init__(self) -> None:
         root = MemoryPointer("DarkSoulsII.exe", "DarkSoulsII.exe")
@@ -251,3 +323,6 @@ class DS2Memory:
         self.online = OnlineSession(root)
         self.attak_state = AttackState(root)
         self.equipment = Equipment(root)
+
+ds2 = DS2Memory()
+print(ds2.covenants.current_covenant())
