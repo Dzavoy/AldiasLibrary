@@ -214,16 +214,16 @@ class Rings:
         with open("rings_ids.json", "r", encoding='utf-8') as file:
             self.id = json.load(file)
     
-    def slot_1(self) -> int:
+    def slot_1(self) -> str:
         return self.id[str(self._base.pointer_walk(*self.slot_1_path).read_int())]
     
-    def slot_2(self) -> int:
+    def slot_2(self) -> str:
         return self.id[str(self._base.pointer_walk(*self.slot_2_path).read_int())]
 
-    def slot_3(self) -> int:
+    def slot_3(self) -> str:
         return self.id[str(self._base.pointer_walk(*self.slot_3_path).read_int())]
     
-    def slot_4(self) -> int:
+    def slot_4(self) -> str:
         return self.id[str(self._base.pointer_walk(*self.slot_4_path).read_int())]
 
 class Equipment(BaseCategory):
