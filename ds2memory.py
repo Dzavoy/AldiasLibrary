@@ -30,13 +30,21 @@ class Stats(BaseCategory):
         return self._base.pointer_walk(0xD0, 0x1B4).read_float()
 
     def player_name(self) -> str:
-        return self._base.pointer_walk(0xA8, 0xC0, 0x24).read_bytes(50).decode("utf-16-le")
+        return(
+            self._base.pointer_walk(0xA8, 0xC0, 0x24)
+            .read_bytes(50)
+            .decode("utf-16-le")
+        )
 
     def team_type(self) -> int:
         return ord(self._base.pointer_walk(0xD0, 0xB0, 0x3D).read_bytes(1))
 
     def player_steam_id(self) -> int:
-        return int(self._base.pointer_walk(0xA8, 0xC8, 0x14).read_string()[1:], 16)
+        return int(
+            self._base.pointer_walk(0xA8, 0xC8, 0x14)
+            .read_string()[1:],
+            16
+        )
 
 class Attributes(BaseCategory):
     def __init__(self, root: MemoryPointer) -> None:
@@ -101,7 +109,8 @@ class Attributes(BaseCategory):
         )
 
 class Covenant:
-    def __init__(self, base: MemoryPointer, points_path: list[int], rank_path: list[int]) -> None:
+    def __init__(self, base: MemoryPointer,
+        points_path: list[int], rank_path: list[int]) -> None:
         self._base = base
         self.points_path = points_path
         self.rank_path = rank_path
@@ -175,10 +184,12 @@ class Covenants(BaseCategory):
             self.id: dict[str, str] = json.load(file)
         
     def current_covenant(self) -> str:
-        return self.id[str(int.from_bytes(
+        return self.id[str(
+            int.from_bytes(
                 self._base.pointer_walk(0xD0, 0x490, 0x1AD).read_bytes(1),
                 byteorder='little'
-                ))]
+            )
+        )]
 
 class OnlineSession(BaseCategory):
     def __init__(self, root: MemoryPointer) -> None:
@@ -206,49 +217,66 @@ class AttackState(BaseCategory):
         )
 
 class Rings:
-    def __init__(self, base: MemoryPointer, slots_paths: list[list[int]]) -> None:
+    def __init__(self, base: MemoryPointer,
+        slots_paths: list[list[int]]) -> None:
         self._base = base
-        self.slot_1_path = slots_paths[0]
-        self.slot_2_path = slots_paths[1]
-        self.slot_3_path = slots_paths[2]
-        self.slot_4_path = slots_paths[3]
+        self._slot_1_path = slots_paths[0]
+        self._slot_2_path = slots_paths[1]
+        self._slot_3_path = slots_paths[2]
+        self._slot_4_path = slots_paths[3]
 
         with open("rings_ids.json", "r", encoding='utf-8') as file:
             self.id: dict[str, str] = json.load(file)
     
     def slot_1(self) -> str:
-        return self.id[str(self._base.pointer_walk(*self.slot_1_path).read_int())]
+        return self.id[str(
+            self._base.pointer_walk(*self._slot_1_path).read_int()
+        )]
     
     def slot_2(self) -> str:
-        return self.id[str(self._base.pointer_walk(*self.slot_2_path).read_int())]
+        return self.id[str(
+            self._base.pointer_walk(*self._slot_2_path).read_int()
+        )]
 
     def slot_3(self) -> str:
-        return self.id[str(self._base.pointer_walk(*self.slot_3_path).read_int())]
+        return self.id[str(
+            self._base.pointer_walk(*self._slot_3_path).read_int()
+        )]
     
     def slot_4(self) -> str:
-        return self.id[str(self._base.pointer_walk(*self.slot_4_path).read_int())]
+        return self.id[str(
+            self._base.pointer_walk(*self._slot_4_path).read_int()
+        )]
 
 class Weapons:
-    def __init__(self, base: MemoryPointer, slots_paths: list[list[int]]) -> None:
+    def __init__(self, base: MemoryPointer,
+        slots_paths: list[list[int]]) -> None:
         self._base = base
-        self.slot_1_path = slots_paths[0]
-        self.slot_2_path = slots_paths[1]
-        self.slot_3_path = slots_paths[2]
+        self._slot_1_path = slots_paths[0]
+        self._slot_2_path = slots_paths[1]
+        self._slot_3_path = slots_paths[2]
 
         with open("weapons_ids.json", "r", encoding='utf-8') as file:
             self.id: dict[str, str] = json.load(file)
 
     def slot_1(self) -> str:
-        return self.id[str(self._base.pointer_walk(*self.slot_1_path).read_int())]
+        return self.id[str(
+            self._base.pointer_walk(*self._slot_1_path).read_int()
+        )]
         
     def slot_2(self) -> str:
-        return self.id[str(self._base.pointer_walk(*self.slot_2_path).read_int())]
+        return self.id[str(
+            self._base.pointer_walk(*self._slot_2_path).read_int()
+        )]
         
     def slot_3(self) -> str:
-        return self.id[str(self._base.pointer_walk(*self.slot_3_path).read_int())]
+        return self.id[str(
+            self._base.pointer_walk(*self._slot_3_path).read_int()
+        )]
 
 class Armors:
-    def __init__(self, base: MemoryPointer, slots_paths: list[list[int]]) -> None:
+    def __init__(self,base: MemoryPointer,
+        slots_paths: list[list[int]]) -> None:
         self._base = base
         self._head_path = slots_paths[0]
         self._chest_path = slots_paths[1]
@@ -259,16 +287,24 @@ class Armors:
             self.id: dict[str, str] = json.load(file)
 
     def head(self) -> str:
-        return self.id[str(self._base.pointer_walk(*self._head_path).read_int())]
+        return self.id[str(
+            self._base.pointer_walk(*self._head_path).read_int()
+        )]
     
     def chest(self) -> str:
-        return self.id[str(self._base.pointer_walk(*self._chest_path).read_int())]
+        return self.id[str(
+            self._base.pointer_walk(*self._chest_path).read_int()
+        )]
 
     def hands(self) -> str:
-        return self.id[str(self._base.pointer_walk(*self._hands_path).read_int())]
+        return self.id[str(
+            self._base.pointer_walk(*self._hands_path).read_int()
+        )]
     
     def legs(self) -> str:
-        return self.id[str(self._base.pointer_walk(*self._legs_path).read_int())]
+        return self.id[str(
+            self._base.pointer_walk(*self._legs_path).read_int()
+        )]
 
 class Equipment(BaseCategory):
     def __init__(self, root: MemoryPointer) -> None:
