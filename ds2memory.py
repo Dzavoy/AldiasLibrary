@@ -27,18 +27,23 @@ class Stats:
         self.sp_path = sp_paths[0]
         self.max_sp_path = sp_paths[1]
 
+    @property
     def current_health(self) -> int:
         return self._base.pointer_walk(*self.hp_path).read_int()
     
+    @property
     def max_health(self) -> int:
         return self._base.pointer_walk(*self.max_hp_path).read_int()
 
+    @property
     def min_health(self) -> int:
         return self._base.pointer_walk(*self.min_hp_path).read_int()
     
+    @property
     def current_stamina(self) -> float:
         return self._base.pointer_walk(*self.sp_path).read_float()
     
+    @property
     def max_stamina(self) -> float:
         return self._base.pointer_walk(*self.max_sp_path).read_float()
 
@@ -57,57 +62,67 @@ class Attributes:
         self.int_path = attributes_paths[8]
         self.fth_path = attributes_paths[9]
 
+    @property
     def soul_level(self) -> int:
         return self._base.pointer_walk(*self.sl_path).read_int()
 
+    @property
     def vigor(self) -> int:
         return int.from_bytes(
             self._base.pointer_walk(*self.vgr_path).read_bytes(2),
             byteorder='little'
         )
     
+    @property
     def attunement(self) -> int:
         return int.from_bytes(
             self._base.pointer_walk(*self.end_path).read_bytes(2),
             byteorder='little'
         )
-
+    
+    @property
     def endurance(self) -> int:
         return int.from_bytes(
             self._base.pointer_walk(*self.vit_path).read_bytes(2),
             byteorder='little'
         )
 
+    @property
     def vitality(self) -> int:
         return int.from_bytes(
             self._base.pointer_walk(*self.atn_path).read_bytes(2),
             byteorder='little'
         )
 
+    @property
     def strenght(self) -> int:
         return int.from_bytes(
             self._base.pointer_walk(*self.str_path).read_bytes(2),
             byteorder='little'
         )
 
+    @property
     def dexterity(self) -> int:
         return int.from_bytes(
             self._base.pointer_walk(*self.dex_path).read_bytes(2),
             byteorder='little'
         )
 
+    @property
     def adaptability(self) -> int:
         return int.from_bytes(
             self._base.pointer_walk(*self.adp_path).read_bytes(2),
             byteorder='little'
         )
 
+    @property
     def intelligence(self) -> int:
         return int.from_bytes(
             self._base.pointer_walk(*self.int_path).read_bytes(2),
             byteorder='little'
         )
 
+    @property
     def faith(self) -> int:
         return int.from_bytes(
             self._base.pointer_walk(*self.fth_path).read_bytes(2),
@@ -121,9 +136,11 @@ class Covenant:
         self.points_path = points_path
         self.rank_path = rank_path
     
+    @property
     def points(self) -> int:
         return self._base.pointer_walk(*self.points_path).read_int()
     
+    @property
     def rank(self) -> int:
         return self._base.pointer_walk(*self.rank_path).read_int()
 
@@ -190,6 +207,7 @@ class Covenants(BaseCategory):
         with open("covenants_ids.json", "r", encoding='utf-8') as file:
             self.id: dict[str, str] = json.load(file)
         
+    @property
     def current_covenant(self) -> str:
         return self.id[str(
             int.from_bytes(
@@ -204,6 +222,7 @@ class OnlineSession(BaseCategory):
     def __init__(self, root: MemoryPointer) -> None:
         super().__init__(root)
 
+    @property
     def alloted_time(self) -> float:
         return self._base.pointer_walk(0x20, 0x17C).read_float()
 
@@ -213,12 +232,14 @@ class AttackState(BaseCategory):
     def __init__(self, root: MemoryPointer) -> None:
         super().__init__(root)
     
+    @property
     def guard_state_1(self) -> int:
         return int.from_bytes(
             self._base.pointer_walk(0xD0, 0xC0, 0x78).read_bytes(1),
             byteorder="little"
         )
     
+    @property
     def guard_state_2(self) -> int:
         return int.from_bytes(
             self._base.pointer_walk(0xD0, 0xC0, 0x7C).read_bytes(1),
@@ -237,21 +258,25 @@ class Rings:
         with open("rings_ids.json", "r", encoding='utf-8') as file:
             self.id: dict[str, str] = json.load(file)
     
+    @property
     def slot_1(self) -> str:
         return self.id[str(
             self._base.pointer_walk(*self._slot_1_path).read_int()
         )]
     
+    @property
     def slot_2(self) -> str:
         return self.id[str(
             self._base.pointer_walk(*self._slot_2_path).read_int()
         )]
 
+    @property
     def slot_3(self) -> str:
         return self.id[str(
             self._base.pointer_walk(*self._slot_3_path).read_int()
         )]
     
+    @property
     def slot_4(self) -> str:
         return self.id[str(
             self._base.pointer_walk(*self._slot_4_path).read_int()
@@ -268,16 +293,19 @@ class Weapons:
         with open("weapons_ids.json", "r", encoding='utf-8') as file:
             self.id: dict[str, str] = json.load(file)
 
+    @property
     def slot_1(self) -> str:
         return self.id[str(
             self._base.pointer_walk(*self._slot_1_path).read_int()
         )]
-        
+    
+    @property
     def slot_2(self) -> str:
         return self.id[str(
             self._base.pointer_walk(*self._slot_2_path).read_int()
         )]
-        
+    
+    @property
     def slot_3(self) -> str:
         return self.id[str(
             self._base.pointer_walk(*self._slot_3_path).read_int()
@@ -295,21 +323,25 @@ class Armors:
         with open("armors_ids.json", "r", encoding='utf-8') as file:
             self.id: dict[str, str] = json.load(file)
 
+    @property
     def head(self) -> str:
         return self.id[str(
             self._base.pointer_walk(*self._head_path).read_int()
         )]
     
+    @property
     def chest(self) -> str:
         return self.id[str(
             self._base.pointer_walk(*self._chest_path).read_int()
         )]
 
+    @property
     def hands(self) -> str:
         return self.id[str(
             self._base.pointer_walk(*self._hands_path).read_int()
         )]
     
+    @property
     def legs(self) -> str:
         return self.id[str(
             self._base.pointer_walk(*self._legs_path).read_int()
@@ -353,6 +385,7 @@ class MyCharacter(BaseCategory):
         with open("team_type_ids.json", "r", encoding='utf-8') as file:
             self.id: dict[str, str] = json.load(file)
     
+    @property
     def player_name(self) -> str:
         return(
             self._base.pointer_walk(0xA8, 0xC0, 0x24)
@@ -360,12 +393,14 @@ class MyCharacter(BaseCategory):
             .decode("utf-16-le")
         )
 
+    @property
     def team_type(self) -> str:
         return self.id[str(
             ord(self._base.pointer_walk(0xD0, 0xB0, 0x3D)
             .read_bytes(1))
         )]
 
+    @property
     def player_steam_id(self) -> int:
         return int(
             self._base.pointer_walk(0xA8, 0xC8, 0x14)
