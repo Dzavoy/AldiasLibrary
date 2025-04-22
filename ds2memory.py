@@ -1,110 +1,116 @@
 from mempointer import MemoryPointer
 import json
+from enum import Enum
+
+class PatternType(Enum):
+    GAME_MANAGER_IMP = rb"\x48\x8B\x05....\x48\x8B\x58\x38\x48\x85\xDB\x74.\xF6"
+    NET_SEASON_MANAGER = rb"\x48\x8B\x0D....\x48\x85\xC9\x74.\x48\x8B\x49\x18\xE8"
+    KATANA_MAIN_APP = rb"\x48\x8B\x15....\x45\x32\xC0\x85\xC9"
 
 class BaseCategory:
     _base: MemoryPointer
+    _pattern_type: PatternType
 
-    def __init__(self, root: MemoryPointer, pattern: bytes) -> None:
-        base: MemoryPointer = root.relocate_pattern(pattern)
+    def __init__(self, root: MemoryPointer) -> None:
+        base: MemoryPointer = root.relocate_pattern(self._pattern_type.value)
         offset: int = base.offset(3).read_int()
         self._base = base.offset(offset + 7).dereference()
 
-class Stats(BaseCategory):
-    def __init__(self, root: MemoryPointer) -> None:
-        pattern: bytes = rb"\x48\x8B\x05....\x48\x8B\x58\x38\x48\x85\xDB\x74.\xF6"
-        super().__init__(root, pattern)
+class Stats:
+    def __init__(self, base: MemoryPointer,
+        hp_paths: list[list[int]], sp_paths: list[list[int]]) -> None:
+        self._base = base
+        self.hp_path = hp_paths[0]
+        self.max_hp_path = hp_paths[1]
+        self.min_hp_path = hp_paths[2]
 
-    def player_health(self) -> int:
-        return self._base.pointer_walk(0xD0, 0x168).read_int()
+        self.sp_path = sp_paths[0]
+        self.max_sp_path = sp_paths[1]
+
+    def current_health(self) -> int:
+        return self._base.pointer_walk(*self.hp_path).read_int()
     
-    def player_min_health(self) -> int:
-        return self._base.pointer_walk(0xD0, 0x16C).read_int()
+    def max_health(self) -> int:
+        return self._base.pointer_walk(*self.max_hp_path).read_int()
 
-    def player_max_health(self) -> int:
-        return self._base.pointer_walk(0xD0, 0x170).read_int()
+    def min_health(self) -> int:
+        return self._base.pointer_walk(*self.min_hp_path).read_int()
     
-    def player_stamina(self) -> float:
-        return self._base.pointer_walk(0xD0, 0x1AC).read_float()
+    def current_stamina(self) -> float:
+        return self._base.pointer_walk(*self.sp_path).read_float()
     
-    def player_max_stamina(self) -> float:
-        return self._base.pointer_walk(0xD0, 0x1B4).read_float()
+    def max_stamina(self) -> float:
+        return self._base.pointer_walk(*self.max_sp_path).read_float()
 
-    def player_name(self) -> str:
-        return(
-            self._base.pointer_walk(0xA8, 0xC0, 0x24)
-            .read_bytes(50)
-            .decode("utf-16-le")
-        )
+class Attributes:
+    def __init__(self, base: MemoryPointer,
+    attributes_paths: list[list[int]]) -> None:
+        self._base = base
+        self.sl_path = attributes_paths[0]
+        self.vgr_path = attributes_paths[1]
+        self.end_path = attributes_paths[2]
+        self.vit_path = attributes_paths[3]
+        self.atn_path = attributes_paths[4]
+        self.str_path = attributes_paths[5]
+        self.dex_path = attributes_paths[6]
+        self.adp_path = attributes_paths[7]
+        self.int_path = attributes_paths[8]
+        self.fth_path = attributes_paths[9]
 
-    def team_type(self) -> int:
-        return ord(self._base.pointer_walk(0xD0, 0xB0, 0x3D).read_bytes(1))
+    def soul_level(self) -> int:
+        return self._base.pointer_walk(*self.sl_path).read_int()
 
-    def player_steam_id(self) -> int:
-        return int(
-            self._base.pointer_walk(0xA8, 0xC8, 0x14)
-            .read_string()[1:],
-            16
-        )
-
-class Attributes(BaseCategory):
-    def __init__(self, root: MemoryPointer) -> None:
-        pattern: bytes = rb"\x48\x8B\x05....\x48\x8B\x58\x38\x48\x85\xDB\x74.\xF6"
-        super().__init__(root, pattern)
-
-    def player_level(self) -> int:
-        return self._base.pointer_walk(0xD0, 0x490, 0xd0).read_int()
-
-    def player_vigor(self) -> int:
+    def vigor(self) -> int:
         return int.from_bytes(
-            self._base.pointer_walk(0xD0, 0x490, 0x8).read_bytes(2),
+            self._base.pointer_walk(*self.vgr_path).read_bytes(2),
             byteorder='little'
         )
     
-    def player_attunement(self) -> int:
+    def attunement(self) -> int:
         return int.from_bytes(
-            self._base.pointer_walk(0xD0, 0x490, 0xE).read_bytes(2),
+            self._base.pointer_walk(*self.end_path).read_bytes(2),
             byteorder='little'
         )
 
-    def player_endurance(self) -> int:
+    def endurance(self) -> int:
         return int.from_bytes(
-            self._base.pointer_walk(0xD0, 0x490, 0xA).read_bytes(2),
+            self._base.pointer_walk(*self.vit_path).read_bytes(2),
             byteorder='little'
         )
 
-    def player_vitality(self) -> int:
+    def vitality(self) -> int:
         return int.from_bytes(
-            self._base.pointer_walk(0xD0, 0x490, 0xC).read_bytes(2),
+            self._base.pointer_walk(*self.atn_path).read_bytes(2),
             byteorder='little'
         )
 
-    def player_strenght(self) -> int:
+    def strenght(self) -> int:
         return int.from_bytes(
-            self._base.pointer_walk(0xD0, 0x490, 0x10).read_bytes(2),
+            self._base.pointer_walk(*self.str_path).read_bytes(2),
             byteorder='little'
         )
 
-    def player_dexterity(self) -> int:
+    def dexterity(self) -> int:
         return int.from_bytes(
-            self._base.pointer_walk(0xD0, 0x490, 0x12).read_bytes(2),
+            self._base.pointer_walk(*self.dex_path).read_bytes(2),
             byteorder='little'
         )
 
-    def player_adaptability(self) -> int:
+    def adaptability(self) -> int:
         return int.from_bytes(
-            self._base.pointer_walk(0xD0, 0x490, 0x18).read_bytes(2),
+            self._base.pointer_walk(*self.adp_path).read_bytes(2),
             byteorder='little'
         )
 
-    def player_intelligence(self) -> int:
+    def intelligence(self) -> int:
         return int.from_bytes(
-            self._base.pointer_walk(0xD0, 0x490, 0x14).read_bytes(2),
+            self._base.pointer_walk(*self.int_path).read_bytes(2),
             byteorder='little'
         )
 
-    def player_faith(self) -> int:
+    def faith(self) -> int:
         return int.from_bytes(
-            self._base.pointer_walk(0xD0, 0x490, 0x16).read_bytes(2),
+            self._base.pointer_walk(*self.fth_path).read_bytes(2),
             byteorder='little'
         )
 
@@ -122,9 +128,10 @@ class Covenant:
         return self._base.pointer_walk(*self.rank_path).read_int()
 
 class Covenants(BaseCategory):
+    _pattern_type = PatternType.GAME_MANAGER_IMP
+
     def __init__(self, root: MemoryPointer) -> None:
-        pattern: bytes = rb"\x48\x8B\x05....\x48\x8B\x58\x38\x48\x85\xDB\x74.\xF6"
-        super().__init__(root, pattern)
+        super().__init__(root)
 
         self.heirs_of_the_sun = Covenant(
                 self._base,
@@ -192,17 +199,19 @@ class Covenants(BaseCategory):
         )]
 
 class OnlineSession(BaseCategory):
+    _pattern_type = PatternType.NET_SEASON_MANAGER
+
     def __init__(self, root: MemoryPointer) -> None:
-        pattern: bytes = rb"\x48\x8B\x0D....\x48\x85\xC9\x74.\x48\x8B\x49\x18\xE8"
-        super().__init__(root, pattern)
+        super().__init__(root)
 
     def alloted_time(self) -> float:
         return self._base.pointer_walk(0x20, 0x17C).read_float()
 
 class AttackState(BaseCategory):
+    _pattern_type = PatternType.GAME_MANAGER_IMP
+
     def __init__(self, root: MemoryPointer) -> None:
-        pattern: bytes = rb"\x48\x8B\x05....\x48\x8B\x58\x38\x48\x85\xDB\x74.\xF6"
-        super().__init__(root, pattern)
+        super().__init__(root)
     
     def guard_state_1(self) -> int:
         return int.from_bytes(
@@ -306,10 +315,69 @@ class Armors:
             self._base.pointer_walk(*self._legs_path).read_int()
         )]
 
-class Equipment(BaseCategory):
+class MyCharacter(BaseCategory):
+    _pattern_type = PatternType.GAME_MANAGER_IMP
+
     def __init__(self, root: MemoryPointer) -> None:
-        pattern: bytes = rb"\x48\x8B\x05....\x48\x8B\x58\x38\x48\x85\xDB\x74.\xF6"
-        super().__init__(root, pattern)
+        super().__init__(root)
+    
+        self.stats = Stats(
+            self._base,
+            hp_paths = [
+                [0xD0, 0x168],
+                [0xD0, 0x170],
+                [0xD0, 0x16C]
+            ],
+            sp_paths = [
+                [0xD0, 0x1AC],
+                [0xD0, 0x1B4]
+            ]
+        )
+
+        self.attributes = Attributes(
+            self._base,
+            attributes_paths = [
+                [0xD0, 0x490, 0xd0],
+                [0xD0, 0x490, 0x8],
+                [0xD0, 0x490, 0xE],
+                [0xD0, 0x490, 0xA],
+                [0xD0, 0x490, 0xC],
+                [0xD0, 0x490, 0x10],
+                [0xD0, 0x490, 0x12],
+                [0xD0, 0x490, 0x18],
+                [0xD0, 0x490, 0x14],
+                [0xD0, 0x490, 0x16]
+            ]
+        )
+
+        with open("team_type_ids.json", "r", encoding='utf-8') as file:
+            self.id: dict[str, str] = json.load(file)
+    
+    def player_name(self) -> str:
+        return(
+            self._base.pointer_walk(0xA8, 0xC0, 0x24)
+            .read_bytes(50)
+            .decode("utf-16-le")
+        )
+
+    def team_type(self) -> str:
+        return self.id[str(
+            ord(self._base.pointer_walk(0xD0, 0xB0, 0x3D)
+            .read_bytes(1))
+        )]
+
+    def player_steam_id(self) -> int:
+        return int(
+            self._base.pointer_walk(0xA8, 0xC8, 0x14)
+            .read_string()[1:],
+            16
+        )
+
+class Equipment(BaseCategory):
+    _pattern_type = PatternType.GAME_MANAGER_IMP
+
+    def __init__(self, root: MemoryPointer) -> None:
+        super().__init__(root)
 
         self.rings = Rings(
             self._base,
@@ -353,8 +421,7 @@ class DS2Memory:
     def __init__(self) -> None:
         root = MemoryPointer("DarkSoulsII.exe", "DarkSoulsII.exe")
 
-        self.stats = Stats(root)
-        self.attributes = Attributes(root)
+        self.my_character = MyCharacter(root)
         self.covenants = Covenants(root)
         self.online = OnlineSession(root)
         self.attack_state = AttackState(root)
