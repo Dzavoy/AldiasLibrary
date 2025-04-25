@@ -16,6 +16,14 @@ class BaseCategory:
         offset: int = base.offset(3).read_int()
         self._base = base.offset(offset + 7).dereference()
 
+class IdReader:
+    def __init__(self, file_name: str) -> None:
+        with open(file_name, "r", encoding='utf-8') as file:
+            self.id: dict[str, str] = json.load(file)
+    
+    def get_id(self) -> dict[str, str]:
+        return self.id
+
 class Stats:
     def __init__(self, base: MemoryPointer,
         hp_paths: list[list[int]], sp_paths: list[list[int]]) -> None:
@@ -26,9 +34,8 @@ class Stats:
 
         self.sp_path = sp_paths[0]
         self.max_sp_path = sp_paths[1]
-
-        with open("team_type_ids.json", "r", encoding='utf-8') as file:
-            self.id: dict[str, str] = json.load(file)
+        
+        self.id = IdReader("team_type_ids.json").get_id()
 
     @property
     def current_health(self) -> int:
@@ -37,7 +44,7 @@ class Stats:
     @current_health.setter
     def current_health(self, value: int) -> None:
         self._base.pointer_walk(*self.hp_path).write_int(value)
-    
+
     @property
     def max_health(self) -> int:
         return self._base.pointer_walk(*self.max_hp_path).read_int()
@@ -53,7 +60,7 @@ class Stats:
     @min_health.setter
     def min_health(self, value: int) -> None:
         self._base.pointer_walk(*self.min_hp_path).write_int(value)
-    
+
     @property
     def current_stamina(self) -> float:
         return self._base.pointer_walk(*self.sp_path).read_float()
@@ -61,7 +68,7 @@ class Stats:
     @current_stamina.setter
     def current_stamina(self, value: float) -> None:
         self._base.pointer_walk(*self.sp_path).write_float(value)
-    
+
     @property
     def max_stamina(self) -> float:
         return self._base.pointer_walk(*self.max_sp_path).read_float()
@@ -69,7 +76,7 @@ class Stats:
     @max_stamina.setter
     def max_stamina(self, value: float) -> None:
         self._base.pointer_walk(*self.max_sp_path).write_float(value)
-    
+
     @property
     def name(self) -> str:
         return(
@@ -77,12 +84,12 @@ class Stats:
             .read_bytes(50)
             .decode("utf-16-le")
         )
-    
+
     @name.setter
     def name(self, value: str) -> None:
         (self._base.pointer_walk(0xA8, 0xC0, 0x24)
         .write_bytes(value.encode("utf-16-le"), length=50))
-        
+
     @property
     def team_type(self) -> str:
         return self.id[str(
@@ -123,14 +130,14 @@ class Attributes:
             self._base.pointer_walk(*self.vgr_path).read_bytes(2),
             byteorder='little'
         )
-    
+
     @property
     def attunement(self) -> int:
         return int.from_bytes(
             self._base.pointer_walk(*self.end_path).read_bytes(2),
             byteorder='little'
         )
-    
+
     @property
     def endurance(self) -> int:
         return int.from_bytes(
@@ -186,15 +193,15 @@ class Covenant:
         self._base = base
         self.points_path = points_path
         self.rank_path = rank_path
-    
+
     @property
     def points(self) -> int:
         return self._base.pointer_walk(*self.points_path).read_int()
-    
+
     @points.setter
     def points(self, value: int) -> None:
         self._base.pointer_walk(*self.points_path).write_int(value)
-    
+
     @property
     def rank(self) -> int:
         return self._base.pointer_walk(*self.rank_path).read_int()
@@ -236,13 +243,13 @@ class Covenants:
                 points_path=[0xD0, 0x490, 0x1D0],
                 rank_path=[0xD0, 0x490, 0x1BF]
             )
-        
+
         self.company_of_champions = Covenant(
                 self._base,
                 points_path=[0xD0, 0x490, 0x1D2],
                 rank_path=[0xD0, 0x490, 0x1C0]
             )
-        
+
         self.pilgrims_of_dark = Covenant(
                 self._base,
                 points_path=[0xD0, 0x490, 0x1D4],
@@ -254,16 +261,15 @@ class Covenants:
                 points_path=[0xD0, 0x490, 0x1C8],
                 rank_path=[0xD0, 0x490, 0x1BB]
             )
-        
+
         self.blue_sentinels = Covenant(
                 self._base,
                 points_path=[0xD0, 0x490, 0x1C6],
                 rank_path=[0xD0, 0x490, 0x1BA]
             )
-        
-        with open("covenants_ids.json", "r", encoding='utf-8') as file:
-            self.id: dict[str, str] = json.load(file)
-        
+
+        self.id = IdReader("covenants_ids.json").get_id()
+
     @property
     def current_covenant(self) -> str:
         return self.id[str(
@@ -292,14 +298,14 @@ class AttackState(BaseCategory):
 
     def __init__(self, root: MemoryPointer) -> None:
         super().__init__(root)
-    
+
     @property
     def guard_state_1(self) -> int:
         return int.from_bytes(
             self._base.pointer_walk(0xD0, 0xC0, 0x78).read_bytes(1),
             byteorder="little"
         )
-    
+
     @property
     def guard_state_2(self) -> int:
         return int.from_bytes(
@@ -316,15 +322,14 @@ class Rings:
         self._slot_3_path = slots_paths[2]
         self._slot_4_path = slots_paths[3]
 
-        with open("rings_ids.json", "r", encoding='utf-8') as file:
-            self.id: dict[str, str] = json.load(file)
-    
+        self.id = IdReader("rings_ids.json").get_id()
+
     @property
     def slot_1(self) -> str:
         return self.id[str(
             self._base.pointer_walk(*self._slot_1_path).read_int()
         )]
-    
+
     @property
     def slot_2(self) -> str:
         return self.id[str(
@@ -336,7 +341,7 @@ class Rings:
         return self.id[str(
             self._base.pointer_walk(*self._slot_3_path).read_int()
         )]
-    
+
     @property
     def slot_4(self) -> str:
         return self.id[str(
@@ -351,21 +356,20 @@ class Weapons:
         self._slot_2_path = slots_paths[1]
         self._slot_3_path = slots_paths[2]
 
-        with open("weapons_ids.json", "r", encoding='utf-8') as file:
-            self.id: dict[str, str] = json.load(file)
+        self.id = IdReader("weapons_ids.json").get_id()
 
     @property
     def slot_1(self) -> str:
         return self.id[str(
             self._base.pointer_walk(*self._slot_1_path).read_int()
         )]
-    
+
     @property
     def slot_2(self) -> str:
         return self.id[str(
             self._base.pointer_walk(*self._slot_2_path).read_int()
         )]
-    
+
     @property
     def slot_3(self) -> str:
         return self.id[str(
@@ -381,15 +385,14 @@ class Armors:
         self._hands_path = slots_paths[2]
         self._legs_path = slots_paths[3]
 
-        with open("armors_ids.json", "r", encoding='utf-8') as file:
-            self.id: dict[str, str] = json.load(file)
+        self.id = IdReader("armors_ids.json").get_id()
 
     @property
     def head(self) -> str:
         return self.id[str(
             self._base.pointer_walk(*self._head_path).read_int()
         )]
-    
+
     @property
     def chest(self) -> str:
         return self.id[str(
@@ -401,7 +404,7 @@ class Armors:
         return self.id[str(
             self._base.pointer_walk(*self._hands_path).read_int()
         )]
-    
+
     @property
     def legs(self) -> str:
         return self.id[str(
@@ -455,7 +458,7 @@ class MyCharacter(BaseCategory):
 
     def __init__(self, root: MemoryPointer) -> None:
         super().__init__(root)
-    
+
         self.stats = Stats(
             self._base,
             hp_paths = [
