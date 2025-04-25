@@ -27,25 +27,76 @@ class Stats:
         self.sp_path = sp_paths[0]
         self.max_sp_path = sp_paths[1]
 
+        with open("team_type_ids.json", "r", encoding='utf-8') as file:
+            self.id: dict[str, str] = json.load(file)
+
     @property
     def current_health(self) -> int:
         return self._base.pointer_walk(*self.hp_path).read_int()
+
+    @current_health.setter
+    def current_health(self, value: int) -> None:
+        self._base.pointer_walk(*self.hp_path).write_int(value)
     
     @property
     def max_health(self) -> int:
         return self._base.pointer_walk(*self.max_hp_path).read_int()
 
+    @max_health.setter
+    def max_health(self, value: int) -> None:
+        self._base.pointer_walk(*self.max_hp_path).write_int(value)
+
     @property
     def min_health(self) -> int:
         return self._base.pointer_walk(*self.min_hp_path).read_int()
+
+    @min_health.setter
+    def min_health(self, value: int) -> None:
+        self._base.pointer_walk(*self.min_hp_path).write_int(value)
     
     @property
     def current_stamina(self) -> float:
         return self._base.pointer_walk(*self.sp_path).read_float()
+
+    @current_stamina.setter
+    def current_stamina(self, value: float) -> None:
+        self._base.pointer_walk(*self.sp_path).write_float(value)
     
     @property
     def max_stamina(self) -> float:
         return self._base.pointer_walk(*self.max_sp_path).read_float()
+
+    @max_stamina.setter
+    def max_stamina(self, value: float) -> None:
+        self._base.pointer_walk(*self.max_sp_path).write_float(value)
+    
+    @property
+    def name(self) -> str:
+        return(
+            self._base.pointer_walk(0xA8, 0xC0, 0x24)
+            .read_bytes(50)
+            .decode("utf-16-le")
+        )
+    
+    @name.setter
+    def name(self, value: str) -> None:
+        (self._base.pointer_walk(0xA8, 0xC0, 0x24)
+        .write_bytes(value.encode("utf-16-le"), length=50))
+        
+    @property
+    def team_type(self) -> str:
+        return self.id[str(
+            ord(self._base.pointer_walk(0xD0, 0xB0, 0x3D)
+            .read_bytes(1))
+        )]
+
+    @property
+    def steam_id(self) -> int:
+        return int(
+            self._base.pointer_walk(0xA8, 0xC8, 0x14)
+            .read_string()[1:],
+            16
+        )
 
 class Attributes:
     def __init__(self, base: MemoryPointer,
@@ -140,15 +191,21 @@ class Covenant:
     def points(self) -> int:
         return self._base.pointer_walk(*self.points_path).read_int()
     
+    @points.setter
+    def points(self, value: int) -> None:
+        self._base.pointer_walk(*self.points_path).write_int(value)
+    
     @property
     def rank(self) -> int:
         return self._base.pointer_walk(*self.rank_path).read_int()
 
-class Covenants(BaseCategory):
-    _pattern_type = PatternType.GAME_MANAGER_IMP
+    @rank.setter
+    def rank(self, value: int) -> None:
+        self._base.pointer_walk(*self.rank_path).write_int(value)
 
-    def __init__(self, root: MemoryPointer) -> None:
-        super().__init__(root)
+class Covenants:
+    def __init__(self, base: MemoryPointer) -> None:
+        self._base = base
 
         self.heirs_of_the_sun = Covenant(
                 self._base,
@@ -225,6 +282,10 @@ class OnlineSession(BaseCategory):
     @property
     def alloted_time(self) -> float:
         return self._base.pointer_walk(0x20, 0x17C).read_float()
+
+    @alloted_time.setter
+    def alloted_time(self, value: float) -> None:
+        self._base.pointer_walk(0x20, 0x17C).write_float(value)
 
 class AttackState(BaseCategory):
     _pattern_type = PatternType.GAME_MANAGER_IMP
@@ -347,72 +408,9 @@ class Armors:
             self._base.pointer_walk(*self._legs_path).read_int()
         )]
 
-class MyCharacter(BaseCategory):
-    _pattern_type = PatternType.GAME_MANAGER_IMP
-
-    def __init__(self, root: MemoryPointer) -> None:
-        super().__init__(root)
-    
-        self.stats = Stats(
-            self._base,
-            hp_paths = [
-                [0xD0, 0x168],
-                [0xD0, 0x170],
-                [0xD0, 0x16C]
-            ],
-            sp_paths = [
-                [0xD0, 0x1AC],
-                [0xD0, 0x1B4]
-            ]
-        )
-
-        self.attributes = Attributes(
-            self._base,
-            attributes_paths = [
-                [0xD0, 0x490, 0xd0],
-                [0xD0, 0x490, 0x8],
-                [0xD0, 0x490, 0xE],
-                [0xD0, 0x490, 0xA],
-                [0xD0, 0x490, 0xC],
-                [0xD0, 0x490, 0x10],
-                [0xD0, 0x490, 0x12],
-                [0xD0, 0x490, 0x18],
-                [0xD0, 0x490, 0x14],
-                [0xD0, 0x490, 0x16]
-            ]
-        )
-
-        with open("team_type_ids.json", "r", encoding='utf-8') as file:
-            self.id: dict[str, str] = json.load(file)
-    
-    @property
-    def player_name(self) -> str:
-        return(
-            self._base.pointer_walk(0xA8, 0xC0, 0x24)
-            .read_bytes(50)
-            .decode("utf-16-le")
-        )
-
-    @property
-    def team_type(self) -> str:
-        return self.id[str(
-            ord(self._base.pointer_walk(0xD0, 0xB0, 0x3D)
-            .read_bytes(1))
-        )]
-
-    @property
-    def player_steam_id(self) -> int:
-        return int(
-            self._base.pointer_walk(0xA8, 0xC8, 0x14)
-            .read_string()[1:],
-            16
-        )
-
-class Equipment(BaseCategory):
-    _pattern_type = PatternType.GAME_MANAGER_IMP
-
-    def __init__(self, root: MemoryPointer) -> None:
-        super().__init__(root)
+class Equipment:
+    def __init__(self, base: MemoryPointer) -> None:
+        self._base = base
 
         self.rings = Rings(
             self._base,
@@ -452,12 +450,49 @@ class Equipment(BaseCategory):
             ]
         )
 
+class MyCharacter(BaseCategory):
+    _pattern_type = PatternType.GAME_MANAGER_IMP
+
+    def __init__(self, root: MemoryPointer) -> None:
+        super().__init__(root)
+    
+        self.stats = Stats(
+            self._base,
+            hp_paths = [
+                [0xD0, 0x168],
+                [0xD0, 0x170],
+                [0xD0, 0x16C]
+            ],
+            sp_paths = [
+                [0xD0, 0x1AC],
+                [0xD0, 0x1B4]
+            ]
+        )
+
+        self.attributes = Attributes(
+            self._base,
+            attributes_paths = [
+                [0xD0, 0x490, 0xd0],
+                [0xD0, 0x490, 0x8],
+                [0xD0, 0x490, 0xE],
+                [0xD0, 0x490, 0xA],
+                [0xD0, 0x490, 0xC],
+                [0xD0, 0x490, 0x10],
+                [0xD0, 0x490, 0x12],
+                [0xD0, 0x490, 0x18],
+                [0xD0, 0x490, 0x14],
+                [0xD0, 0x490, 0x16]
+            ]
+        )
+
+        self.covenants = Covenants(self._base)
+
+        self.equipment = Equipment(self._base)
+
 class DS2Memory:
     def __init__(self) -> None:
         root = MemoryPointer("DarkSoulsII.exe", "DarkSoulsII.exe")
 
         self.my_character = MyCharacter(root)
-        self.covenants = Covenants(root)
         self.online = OnlineSession(root)
         self.attack_state = AttackState(root)
-        self.equipment = Equipment(root)
