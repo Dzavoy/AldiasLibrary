@@ -76,6 +76,18 @@ class MemoryPointer:
     def read_bytes(self, size: int) -> bytes:
         return self._process.read_bytes(self._address, size)
     
+    def write_int(self, value) -> None:
+        self._process.write_int(self._address, value)
+
+    def write_float(self, value) -> None:
+        self._process.write_float(self._address, value)
+
+    def write_string(self, value) -> None:
+        self._process.write_string(self._address, value)
+    
+    def write_bytes(self, value, length) -> None:
+        self._process.write_bytes(self._address, value, length)
+    
     def hex(self) -> str:
         return hex(self._address)
 
