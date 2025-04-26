@@ -211,61 +211,65 @@ class Covenant:
         self._base.pointer_walk(*self.rank_path).write_int(value)
 
 class Covenants:
-    def __init__(self, base: MemoryPointer) -> None:
+    def __init__(self, base: MemoryPointer, current_covenant_path: list[int],
+        points_path: list[list[int]], rank_path: list[list[int]]) -> None:
         self._base = base
+        self.current_covenant_path = current_covenant_path
+        self.points_path = points_path
+        self.rank_path = rank_path
 
         self.heirs_of_the_sun = Covenant(
                 self._base,
-                points_path=[0xD0, 0x490, 0x1C4],
-                rank_path=[0xD0, 0x490, 0x1B9]
+                self.points_path[0],
+                self.rank_path[0]
+            )
+        
+        self.blue_sentinels = Covenant(
+                self._base,
+                self.points_path[1],
+                self.rank_path[1]
+            )
+        
+        self.brotherhood_of_blood = Covenant(
+                self._base,
+                self.points_path[2],
+                self.rank_path[2]
             )
 
         self.way_of_blue = Covenant(
                 self._base,
-                points_path=[0xD0, 0x490, 0x1CA],
-                rank_path=[0xD0, 0x490, 0x1BC]
+                self.points_path[3],
+                self.rank_path[3]
             )
 
         self.rat_king = Covenant(
                 self._base,
-                points_path=[0xD0, 0x490, 0x1CC],
-                rank_path=[0xD0, 0x490, 0x1BD]
+                self.points_path[4],
+                self.rank_path[4]
             )
 
         self.bell_keeper = Covenant(
                 self._base,
-                points_path=[0xD0, 0x490, 0x1CE],
-                rank_path=[0xD0, 0x490, 0x1BE]
+                self.points_path[5],
+                self.rank_path[5]
             )
 
         self.dragon_remnants = Covenant(
                 self._base,
-                points_path=[0xD0, 0x490, 0x1D0],
-                rank_path=[0xD0, 0x490, 0x1BF]
+                self.points_path[6],
+                self.rank_path[6]
             )
 
         self.company_of_champions = Covenant(
                 self._base,
-                points_path=[0xD0, 0x490, 0x1D2],
-                rank_path=[0xD0, 0x490, 0x1C0]
+                self.points_path[7],
+                self.rank_path[7]
             )
 
         self.pilgrims_of_dark = Covenant(
                 self._base,
-                points_path=[0xD0, 0x490, 0x1D4],
-                rank_path=[0xD0, 0x490, 0x1C1]
-            )
-
-        self.brotherhood_of_blood = Covenant(
-                self._base,
-                points_path=[0xD0, 0x490, 0x1C8],
-                rank_path=[0xD0, 0x490, 0x1BB]
-            )
-
-        self.blue_sentinels = Covenant(
-                self._base,
-                points_path=[0xD0, 0x490, 0x1C6],
-                rank_path=[0xD0, 0x490, 0x1BA]
+                self.points_path[8],
+                self.rank_path[8]
             )
 
         self.id = IdReader("covenants_ids.json").get_id()
@@ -274,7 +278,9 @@ class Covenants:
     def current_covenant(self) -> str:
         return self.id[str(
             int.from_bytes(
-                self._base.pointer_walk(0xD0, 0x490, 0x1AD).read_bytes(1),
+                self._base.pointer_walk(
+                *self.current_covenant_path)
+                .read_bytes(1),
                 byteorder='little'
             )
         )]
@@ -488,9 +494,16 @@ class MyCharacter(BaseCategory):
             ]
         )
 
-        self.covenants = Covenants(self._base)
+        self.covenants = Covenants(
+            self._base,
+            points_path = [[0xD0, 0x490, 0x1C4 + i*2] for i in range(9)],
+            rank_path = [[0xD0, 0x490, 0x1B9 + i] for i in range(9)],
+            current_covenant_path = [0xD0, 0x490, 0x1AD]
+        )
 
-        self.equipment = Equipment(self._base)
+        self.equipment = Equipment(
+            self._base
+        )
 
 class DS2Memory:
     def __init__(self) -> None:
