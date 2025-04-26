@@ -26,14 +26,20 @@ class IdReader:
 
 class Stats:
     def __init__(self, base: MemoryPointer,
-        hp_paths: list[list[int]], sp_paths: list[list[int]]) -> None:
+        hp_paths: list[list[int]], sp_paths: list[list[int]],
+        name_path: list[int], team_type_path: list[int],
+        steam_id_path: list[int]) -> None:
         self._base = base
         self.hp_path = hp_paths[0]
-        self.max_hp_path = hp_paths[1]
-        self.min_hp_path = hp_paths[2]
+        self.min_hp_path = hp_paths[1]
+        self.max_hp_path = hp_paths[2]
 
         self.sp_path = sp_paths[0]
         self.max_sp_path = sp_paths[1]
+
+        self.name_path = name_path
+        self.team_type_path = team_type_path
+        self.steam_id_path = steam_id_path
         
         self.id = IdReader("team_type_ids.json").get_id()
 
@@ -80,45 +86,45 @@ class Stats:
     @property
     def name(self) -> str:
         return(
-            self._base.pointer_walk(0xA8, 0xC0, 0x24)
+            self._base.pointer_walk(*self.name_path)
             .read_bytes(50)
             .decode("utf-16-le")
         )
 
     @name.setter
     def name(self, value: str) -> None:
-        (self._base.pointer_walk(0xA8, 0xC0, 0x24)
+        (self._base.pointer_walk(*self.name_path)
         .write_bytes(value.encode("utf-16-le"), length=50))
 
     @property
     def team_type(self) -> str:
         return self.id[str(
-            ord(self._base.pointer_walk(0xD0, 0xB0, 0x3D)
+            ord(self._base.pointer_walk(*self.team_type_path)
             .read_bytes(1))
         )]
 
     @property
     def steam_id(self) -> int:
         return int(
-            self._base.pointer_walk(0xA8, 0xC8, 0x14)
+            self._base.pointer_walk(*self.steam_id_path)
             .read_string()[1:],
             16
         )
 
 class Attributes:
     def __init__(self, base: MemoryPointer,
-    attributes_paths: list[list[int]]) -> None:
+    attributes_paths: list[list[int]], sl_path: list[int]) -> None:
         self._base = base
-        self.sl_path = attributes_paths[0]
-        self.vgr_path = attributes_paths[1]
-        self.end_path = attributes_paths[2]
-        self.vit_path = attributes_paths[3]
-        self.atn_path = attributes_paths[4]
-        self.str_path = attributes_paths[5]
-        self.dex_path = attributes_paths[6]
-        self.adp_path = attributes_paths[7]
-        self.int_path = attributes_paths[8]
-        self.fth_path = attributes_paths[9]
+        self.sl_path = sl_path
+        self.vgr_path = attributes_paths[0]
+        self.end_path = attributes_paths[1]
+        self.vit_path = attributes_paths[2]
+        self.atn_path = attributes_paths[3]
+        self.str_path = attributes_paths[4]
+        self.dex_path = attributes_paths[5]
+        self.adp_path = attributes_paths[8]
+        self.int_path = attributes_paths[6]
+        self.fth_path = attributes_paths[7]
 
     @property
     def soul_level(self) -> int:
@@ -130,23 +136,23 @@ class Attributes:
             self._base.pointer_walk(*self.vgr_path).read_bytes(2),
             byteorder='little'
         )
-
+    
     @property
-    def attunement(self) -> int:
+    def endurance(self) -> int:
         return int.from_bytes(
             self._base.pointer_walk(*self.end_path).read_bytes(2),
             byteorder='little'
         )
-
+    
     @property
-    def endurance(self) -> int:
+    def vitality(self) -> int:
         return int.from_bytes(
             self._base.pointer_walk(*self.vit_path).read_bytes(2),
             byteorder='little'
         )
 
     @property
-    def vitality(self) -> int:
+    def attunement(self) -> int:
         return int.from_bytes(
             self._base.pointer_walk(*self.atn_path).read_bytes(2),
             byteorder='little'
@@ -418,45 +424,33 @@ class Armors:
         )]
 
 class Equipment:
-    def __init__(self, base: MemoryPointer) -> None:
+    def __init__(self, base: MemoryPointer, rings_paths: list[list[int]],
+        r_hand_paths: list[list[int]], l_hand_paths: list[list[int]],
+        armor_paths: list[list[int]]) -> None:
         self._base = base
+        self.rings_paths = rings_paths
+        self.r_hand_paths = r_hand_paths
+        self.l_hand_paths = l_hand_paths
+        self.armor_paths = armor_paths
 
         self.rings = Rings(
             self._base,
-            slots_paths = [
-                [0xD0, 0x378, 0x4E8],
-                [0xD0, 0x378, 0x4EC],
-                [0xD0, 0x378, 0x4F0],
-                [0xD0, 0x378, 0x4F4]
-            ]
+            self.rings_paths
         )
 
         self.right_hand = Weapons(
             self._base,
-            slots_paths = [
-                [0xD0, 0x378, 0xB0],
-                [0xD0, 0x378, 0xD8],
-                [0xD0, 0x378, 0x100]
-            ]
+            self.r_hand_paths
         )
 
         self.left_hand = Weapons(
             self._base,
-            slots_paths = [
-                [0xD0, 0x378, 0x9C],
-                [0xD0, 0x378, 0xC4],
-                [0xD0, 0x378, 0xEC]
-            ]
+            self.l_hand_paths
         )
 
         self.armor = Armors(
             self._base,
-            slots_paths = [
-                [0xD0, 0x378, 0x114],
-                [0xD0, 0x378, 0x128],
-                [0xD0, 0x378, 0x13C],
-                [0xD0, 0x378, 0x150]
-            ]
+            self.armor_paths
         )
 
 class MyCharacter(BaseCategory):
@@ -467,31 +461,17 @@ class MyCharacter(BaseCategory):
 
         self.stats = Stats(
             self._base,
-            hp_paths = [
-                [0xD0, 0x168],
-                [0xD0, 0x170],
-                [0xD0, 0x16C]
-            ],
-            sp_paths = [
-                [0xD0, 0x1AC],
-                [0xD0, 0x1B4]
-            ]
+            name_path = [0xA8, 0xC0, 0x24],
+            team_type_path = [0xD0, 0xB0, 0x3D],
+            steam_id_path = [0xA8, 0xC8, 0x14],
+            hp_paths = [[0xD0, 0x168 + i*4] for i in range(3)],
+            sp_paths = [[0xD0, 0x1AC + i*8] for i in range(2)]
         )
 
         self.attributes = Attributes(
             self._base,
-            attributes_paths = [
-                [0xD0, 0x490, 0xd0],
-                [0xD0, 0x490, 0x8],
-                [0xD0, 0x490, 0xE],
-                [0xD0, 0x490, 0xA],
-                [0xD0, 0x490, 0xC],
-                [0xD0, 0x490, 0x10],
-                [0xD0, 0x490, 0x12],
-                [0xD0, 0x490, 0x18],
-                [0xD0, 0x490, 0x14],
-                [0xD0, 0x490, 0x16]
-            ]
+            sl_path = [0xD0, 0x490, 0xd0],
+            attributes_paths = [[0xD0, 0x490, 0x8 + i*2] for i in range(9)]
         )
 
         self.covenants = Covenants(
@@ -502,7 +482,11 @@ class MyCharacter(BaseCategory):
         )
 
         self.equipment = Equipment(
-            self._base
+            self._base,
+            rings_paths = [[0xD0, 0x378, 0x4E8 + i*4]for i in range(4)],
+            r_hand_paths = [[0xD0, 0x378, 0xB0 + i*40]for i in range(3)],
+            l_hand_paths = [[0xD0, 0x378, 0x9C + i*40]for i in range(3)],
+            armor_paths = [[0xD0, 0x378, 0x114 + i*20] for i in range(4)]
         )
 
 class DS2Memory:
