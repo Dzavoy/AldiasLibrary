@@ -14,7 +14,7 @@ class BaseCategory:
     def __init__(self, root: MemoryPointer) -> None:
         base: MemoryPointer = root.relocate_pattern(self._pattern_type.value)
         offset: int = base.offset(3).read_int()
-        self._base = base.offset(offset + 7).dereference()
+        self._base: MemoryPointer = base.offset(offset + 7).dereference()
 
 class IdReader:
     def __init__(self, file_name: str) -> None:
@@ -29,19 +29,19 @@ class Stats:
         hp_paths: list[list[int]], sp_paths: list[list[int]],
         name_path: list[int], team_type_path: list[int],
         steam_id_path: list[int]) -> None:
-        self._base = base
-        self.hp_path = hp_paths[0]
-        self.min_hp_path = hp_paths[1]
-        self.max_hp_path = hp_paths[2]
+        self._base: MemoryPointer = base
+        self.hp_path: list[int] = hp_paths[0]
+        self.min_hp_path: list[int] = hp_paths[1]
+        self.max_hp_path: list[int] = hp_paths[2]
 
-        self.sp_path = sp_paths[0]
-        self.max_sp_path = sp_paths[1]
+        self.sp_path: list[int] = sp_paths[0]
+        self.max_sp_path: list[int] = sp_paths[1]
 
-        self.name_path = name_path
-        self.team_type_path = team_type_path
-        self.steam_id_path = steam_id_path
+        self.name_path: list[int] = name_path
+        self.team_type_path: list[int] = team_type_path
+        self.steam_id_path: list[int] = steam_id_path
         
-        self.id = IdReader("team_type_ids.json").get_id()
+        self.id: dict[str, str] = IdReader("team_type_ids.json").get_id()
 
     @property
     def current_health(self) -> int:
@@ -107,24 +107,23 @@ class Stats:
     def steam_id(self) -> int:
         return int(
             self._base.pointer_walk(*self.steam_id_path)
-            .read_string()[1:],
-            16
+            .read_string()[1:], 16
         )
 
 class Attributes:
     def __init__(self, base: MemoryPointer,
     attributes_paths: list[list[int]], sl_path: list[int]) -> None:
-        self._base = base
-        self.sl_path = sl_path
-        self.vgr_path = attributes_paths[0]
-        self.end_path = attributes_paths[1]
-        self.vit_path = attributes_paths[2]
-        self.atn_path = attributes_paths[3]
-        self.str_path = attributes_paths[4]
-        self.dex_path = attributes_paths[5]
-        self.adp_path = attributes_paths[8]
-        self.int_path = attributes_paths[6]
-        self.fth_path = attributes_paths[7]
+        self._base: MemoryPointer = base
+        self.sl_path: list[int] = sl_path
+        self.vgr_path: list[int] = attributes_paths[0]
+        self.end_path: list[int] = attributes_paths[1]
+        self.vit_path: list[int] = attributes_paths[2]
+        self.atn_path: list[int] = attributes_paths[3]
+        self.str_path: list[int] = attributes_paths[4]
+        self.dex_path: list[int] = attributes_paths[5]
+        self.adp_path: list[int] = attributes_paths[8]
+        self.int_path: list[int] = attributes_paths[6]
+        self.fth_path: list[int] = attributes_paths[7]
 
     @property
     def soul_level(self) -> int:
@@ -196,9 +195,9 @@ class Attributes:
 class Covenant:
     def __init__(self, base: MemoryPointer,
         points_path: list[int], rank_path: list[int]) -> None:
-        self._base = base
-        self.points_path = points_path
-        self.rank_path = rank_path
+        self._base: MemoryPointer = base
+        self.points_path: list[int] = points_path
+        self.rank_path: list[int] = rank_path
 
     @property
     def points(self) -> int:
@@ -219,66 +218,66 @@ class Covenant:
 class Covenants:
     def __init__(self, base: MemoryPointer, current_covenant_path: list[int],
         points_path: list[list[int]], rank_path: list[list[int]]) -> None:
-        self._base = base
-        self.current_covenant_path = current_covenant_path
-        self.points_path = points_path
-        self.rank_path = rank_path
+        self._base: MemoryPointer = base
+        self.current_covenant_path: list[int] = current_covenant_path
+        self.points_path: list[list[int]] = points_path
+        self.rank_path: list[list[int]] = rank_path
 
-        self.heirs_of_the_sun = Covenant(
+        self.heirs_of_the_sun: Covenant = Covenant(
                 self._base,
                 self.points_path[0],
                 self.rank_path[0]
             )
         
-        self.blue_sentinels = Covenant(
+        self.blue_sentinels: Covenant = Covenant(
                 self._base,
                 self.points_path[1],
                 self.rank_path[1]
             )
         
-        self.brotherhood_of_blood = Covenant(
+        self.brotherhood_of_blood: Covenant = Covenant(
                 self._base,
                 self.points_path[2],
                 self.rank_path[2]
             )
 
-        self.way_of_blue = Covenant(
+        self.way_of_blue: Covenant = Covenant(
                 self._base,
                 self.points_path[3],
                 self.rank_path[3]
             )
 
-        self.rat_king = Covenant(
+        self.rat_king: Covenant = Covenant(
                 self._base,
                 self.points_path[4],
                 self.rank_path[4]
             )
 
-        self.bell_keeper = Covenant(
+        self.bell_keeper: Covenant = Covenant(
                 self._base,
                 self.points_path[5],
                 self.rank_path[5]
             )
 
-        self.dragon_remnants = Covenant(
+        self.dragon_remnants: Covenant = Covenant(
                 self._base,
                 self.points_path[6],
                 self.rank_path[6]
             )
 
-        self.company_of_champions = Covenant(
+        self.company_of_champions: Covenant = Covenant(
                 self._base,
                 self.points_path[7],
                 self.rank_path[7]
             )
 
-        self.pilgrims_of_dark = Covenant(
+        self.pilgrims_of_dark: Covenant = Covenant(
                 self._base,
                 self.points_path[8],
                 self.rank_path[8]
             )
 
-        self.id = IdReader("covenants_ids.json").get_id()
+        self.id: dict[str, str] = IdReader("covenants_ids.json").get_id()
 
     @property
     def current_covenant(self) -> str:
@@ -292,7 +291,7 @@ class Covenants:
         )]
 
 class OnlineSession(BaseCategory):
-    _pattern_type = PatternType.NET_SEASON_MANAGER
+    _pattern_type: PatternType = PatternType.NET_SEASON_MANAGER
 
     def __init__(self, root: MemoryPointer) -> None:
         super().__init__(root)
@@ -306,7 +305,7 @@ class OnlineSession(BaseCategory):
         self._base.pointer_walk(0x20, 0x17C).write_float(value)
 
 class AttackState(BaseCategory):
-    _pattern_type = PatternType.GAME_MANAGER_IMP
+    _pattern_type: PatternType = PatternType.GAME_MANAGER_IMP
 
     def __init__(self, root: MemoryPointer) -> None:
         super().__init__(root)
@@ -328,13 +327,13 @@ class AttackState(BaseCategory):
 class Rings:
     def __init__(self, base: MemoryPointer,
         slots_paths: list[list[int]]) -> None:
-        self._base = base
-        self._slot_1_path = slots_paths[0]
-        self._slot_2_path = slots_paths[1]
-        self._slot_3_path = slots_paths[2]
-        self._slot_4_path = slots_paths[3]
+        self._base: MemoryPointer = base
+        self._slot_1_path: list[int] = slots_paths[0]
+        self._slot_2_path: list[int] = slots_paths[1]
+        self._slot_3_path: list[int] = slots_paths[2]
+        self._slot_4_path: list[int] = slots_paths[3]
 
-        self.id = IdReader("rings_ids.json").get_id()
+        self.id: dict[str, str] = IdReader("rings_ids.json").get_id()
 
     @property
     def slot_1(self) -> str:
@@ -363,12 +362,23 @@ class Rings:
 class Weapons:
     def __init__(self, base: MemoryPointer,
         slots_paths: list[list[int]]) -> None:
-        self._base = base
-        self._slot_1_path = slots_paths[0]
-        self._slot_2_path = slots_paths[1]
-        self._slot_3_path = slots_paths[2]
+        self._base: MemoryPointer = base
+        self._slot_1_path: list[int] = slots_paths[0]
+        self._slot_2_path: list[int] = slots_paths[1]
+        self._slot_3_path: list[int] = slots_paths[2]
 
-        self.id = IdReader("weapons_ids.json").get_id()
+        self.id: dict[str, str] = IdReader("weapons_ids.json").get_id()
+
+        self.slot_1_l_db_path = [0xD0, 0x378, 0x28, 0x94]
+        self.slot_1_r_db_path = [0xD0, 0x378, 0x28, 0x16C]
+
+    @property
+    def slot_1_l_db(self) -> float:
+        return self._base.pointer_walk(*self.slot_1_l_db_path).read_float()
+
+    @property
+    def slot_1_r_db(self) -> float:
+        return self._base.pointer_walk(*self.slot_1_r_db_path).read_float()
 
     @property
     def slot_1(self) -> str:
@@ -391,13 +401,13 @@ class Weapons:
 class Armors:
     def __init__(self,base: MemoryPointer,
         slots_paths: list[list[int]]) -> None:
-        self._base = base
-        self._head_path = slots_paths[0]
-        self._chest_path = slots_paths[1]
-        self._hands_path = slots_paths[2]
-        self._legs_path = slots_paths[3]
+        self._base: MemoryPointer = base
+        self._head_path: list[int] = slots_paths[0]
+        self._chest_path: list[int] = slots_paths[1]
+        self._hands_path: list[int] = slots_paths[2]
+        self._legs_path: list[int] = slots_paths[3]
 
-        self.id = IdReader("armors_ids.json").get_id()
+        self.id: dict[str, str] = IdReader("armors_ids.json").get_id()
 
     @property
     def head(self) -> str:
@@ -427,39 +437,39 @@ class Equipment:
     def __init__(self, base: MemoryPointer, rings_paths: list[list[int]],
         r_hand_paths: list[list[int]], l_hand_paths: list[list[int]],
         armor_paths: list[list[int]]) -> None:
-        self._base = base
-        self.rings_paths = rings_paths
-        self.r_hand_paths = r_hand_paths
-        self.l_hand_paths = l_hand_paths
-        self.armor_paths = armor_paths
+        self._base: MemoryPointer = base
+        self.rings_paths: list[list[int]] = rings_paths
+        self.r_hand_paths: list[list[int]] = r_hand_paths
+        self.l_hand_paths: list[list[int]] = l_hand_paths
+        self.armor_paths: list[list[int]] = armor_paths
 
-        self.rings = Rings(
+        self.rings: Rings = Rings(
             self._base,
             self.rings_paths
         )
 
-        self.right_hand = Weapons(
+        self.right_hand: Weapons = Weapons(
             self._base,
             self.r_hand_paths
         )
 
-        self.left_hand = Weapons(
+        self.left_hand: Weapons = Weapons(
             self._base,
             self.l_hand_paths
         )
 
-        self.armor = Armors(
+        self.armor: Armors = Armors(
             self._base,
             self.armor_paths
         )
 
 class MyCharacter(BaseCategory):
-    _pattern_type = PatternType.GAME_MANAGER_IMP
+    _pattern_type: PatternType = PatternType.GAME_MANAGER_IMP
 
     def __init__(self, root: MemoryPointer) -> None:
         super().__init__(root)
 
-        self.stats = Stats(
+        self.stats: Stats = Stats(
             self._base,
             name_path = [0xA8, 0xC0, 0x24],
             team_type_path = [0xD0, 0xB0, 0x3D],
@@ -468,31 +478,92 @@ class MyCharacter(BaseCategory):
             sp_paths = [[0xD0, 0x1AC + i*8] for i in range(2)]
         )
 
-        self.attributes = Attributes(
+        self.attributes: Attributes = Attributes(
             self._base,
             sl_path = [0xD0, 0x490, 0xd0],
             attributes_paths = [[0xD0, 0x490, 0x8 + i*2] for i in range(9)]
         )
 
-        self.covenants = Covenants(
+        self.covenants: Covenants = Covenants(
             self._base,
             points_path = [[0xD0, 0x490, 0x1C4 + i*2] for i in range(9)],
             rank_path = [[0xD0, 0x490, 0x1B9 + i] for i in range(9)],
             current_covenant_path = [0xD0, 0x490, 0x1AD]
         )
 
-        self.equipment = Equipment(
+        self.equipment: Equipment = Equipment(
             self._base,
-            rings_paths = [[0xD0, 0x378, 0x4E8 + i*4]for i in range(4)],
-            r_hand_paths = [[0xD0, 0x378, 0xB0 + i*40]for i in range(3)],
-            l_hand_paths = [[0xD0, 0x378, 0x9C + i*40]for i in range(3)],
+            rings_paths = [[0xD0, 0x378, 0x4E8 + i*4] for i in range(4)],
+            r_hand_paths = [[0xD0, 0x378, 0xB0 + i*40] for i in range(3)],
+            l_hand_paths = [[0xD0, 0x378, 0x9C + i*40] for i in range(3)],
             armor_paths = [[0xD0, 0x378, 0x114 + i*20] for i in range(4)]
         )
 
+class Player1(BaseCategory):
+    _pattern_type: PatternType = PatternType.NET_SEASON_MANAGER
+
+    def __init__(self, root: MemoryPointer) -> None:
+        super().__init__(root)
+
+        self.stats: Stats = Stats(
+            self._base,
+            name_path = [0x20, 0x234],
+            team_type_path = [0x20, 0x1E8, 0xB0, 0x4D],
+            steam_id_path = [], # Need to find this path
+            hp_paths = [[0x20, 0x1E8, 0x168 + i*4] for i in range(3)],
+            sp_paths = [[0x20, 0x1E8, 0x1AC + i*8] for i in range(2)]
+        )
+
+        self.attributes: Attributes = Attributes(
+            self._base,
+            sl_path = [0x20, 0x1E8, 0x490, 0xD0],
+            attributes_paths = [[0x20, 0x1E8, 0x490, 0x8 + i*2] for i in range(9)]
+        )
+
+        self.covenants: Covenants = Covenants(
+            self._base,
+            points_path = [[0x20, 0x1E8, 0x1C4 + i*2] for i in range(9)], # Hight chance that this is wrong idw
+            rank_path = [[0x20, 0x1E8, 0x490, 0x1B9 + i] for i in range(9)], # Hight chance that this is wrong idw
+            current_covenant_path = [0x20, 0x1E8, 0x490, 0x1AD]
+        )
+
+        self.equipment: Equipment = Equipment(
+            self._base,
+            rings_paths = [[0x20, 0x1E8, 0x9AC + i*20] for i in range(4)],
+            r_hand_paths = [[0x20, 0x1E8, 0x880 + i*40] for i in range(3)],
+            l_hand_paths = [[0x20, 0x1E8, 0x86C + i*40] for i in range(3)],
+            armor_paths = [[0x20, 0x1E8, 0x8E4 + i*20] for i in range(4)]
+        )
+
+class Player2(BaseCategory):
+    _pattern_type: PatternType = PatternType.GAME_MANAGER_IMP
+
+    def __init__(self, root: MemoryPointer) -> None:
+        super().__init__(root)
+
+class Player3(BaseCategory):
+    _pattern_type: PatternType = PatternType.GAME_MANAGER_IMP
+
+    def __init__(self, root: MemoryPointer) -> None:
+        super().__init__(root)
+
+class Player4(BaseCategory):
+    _pattern_type: PatternType = PatternType.GAME_MANAGER_IMP
+
+    def __init__(self, root: MemoryPointer) -> None:
+        super().__init__(root)
+
 class DS2Memory:
     def __init__(self) -> None:
-        root = MemoryPointer("DarkSoulsII.exe", "DarkSoulsII.exe")
+        root: MemoryPointer = MemoryPointer(
+            "DarkSoulsII.exe",
+            "DarkSoulsII.exe"
+        )
 
-        self.my_character = MyCharacter(root)
-        self.online = OnlineSession(root)
-        self.attack_state = AttackState(root)
+        self.my_character: MyCharacter = MyCharacter(root)
+        self.player_1: Player1 = Player1(root)
+        self.player_2: Player2 = Player2(root)
+        self.player_3: Player3 = Player3(root)
+        self.player_4: Player4 = Player4(root)
+        self.online: OnlineSession = OnlineSession(root)
+        self.attack_state: AttackState = AttackState(root)
