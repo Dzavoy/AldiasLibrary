@@ -509,7 +509,7 @@ class Player1(BaseCategory):
             self._base,
             name_path = [0x20, 0x234],
             team_type_path = [0x20, 0x1E8, 0xB0, 0x4D],
-            steam_id_path = [], # Need to find this path
+            steam_id_path = [], # Need to find this path.
             hp_paths = [[0x20, 0x1E8, 0x168 + i*4] for i in range(3)],
             sp_paths = [[0x20, 0x1E8, 0x1AC + i*8] for i in range(2)]
         )
@@ -522,8 +522,8 @@ class Player1(BaseCategory):
 
         self.covenants: Covenants = Covenants(
             self._base,
-            points_path = [[0x20, 0x1E8, 0x1C4 + i*2] for i in range(9)], # Hight chance that this is wrong idw
-            rank_path = [[0x20, 0x1E8, 0x490, 0x1B9 + i] for i in range(9)], # Hight chance that this is wrong idw
+            points_path = [[0x20, 0x1E8, 0x1C4 + i*2] for i in range(9)], # There is a high probability that this is incorrect, but I’m not certain.
+            rank_path = [[0x20, 0x1E8, 0x490, 0x1B9 + i] for i in range(9)], # There is a high probability that this is incorrect, but I’m not certain.
             current_covenant_path = [0x20, 0x1E8, 0x490, 0x1AD]
         )
 
