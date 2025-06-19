@@ -14,13 +14,13 @@ class BaseCategory:
     def __init__(self, root: MemoryPointer) -> None:
         base: MemoryPointer = root.relocate_pattern(self._pattern_type.value)
         offset: int = base.offset(3).read_int()
-        self._base: MemoryPointer = base.offset(offset + 7).dereference()
+        self._base: MemoryPointer = base.offset(offset + 7).dereference() # Magic formula
 
 class IdReader:
     def __init__(self, file_name: str) -> None:
         with open(file_name, "r", encoding='utf-8') as file:
             self.id: dict[str, str] = json.load(file)
-    
+
     def get_id(self) -> dict[str, str]:
         return self.id
 
@@ -40,8 +40,8 @@ class Stats:
         self.name_path: list[int] = name_path
         self.team_type_path: list[int] = team_type_path
         self.steam_id_path: list[int] = steam_id_path
-        
-        self.id: dict[str, str] = IdReader("team_type_ids.json").get_id()
+
+        self.id_map: dict[str, str] = IdReader("team_type_ids.json").get_id()
 
     @property
     def current_health(self) -> int:
@@ -98,7 +98,7 @@ class Stats:
 
     @property
     def team_type(self) -> str:
-        return self.id[str(
+        return self.id_map[str(
             ord(self._base.pointer_walk(*self.team_type_path)
             .read_bytes(1))
         )]
@@ -135,14 +135,14 @@ class Attributes:
             self._base.pointer_walk(*self.vgr_path).read_bytes(2),
             byteorder='little'
         )
-    
+
     @property
     def endurance(self) -> int:
         return int.from_bytes(
             self._base.pointer_walk(*self.end_path).read_bytes(2),
             byteorder='little'
         )
-    
+
     @property
     def vitality(self) -> int:
         return int.from_bytes(
@@ -277,11 +277,11 @@ class Covenants:
                 self.rank_path[8]
             )
 
-        self.id: dict[str, str] = IdReader("covenants_ids.json").get_id()
+        self.id_map: dict[str, str] = IdReader("covenants_ids.json").get_id()
 
     @property
     def current_covenant(self) -> str:
-        return self.id[str(
+        return self.id_map[str(
             int.from_bytes(
                 self._base.pointer_walk(
                 *self.current_covenant_path)
@@ -333,70 +333,100 @@ class Rings:
         self._slot_3_path: list[int] = slots_paths[2]
         self._slot_4_path: list[int] = slots_paths[3]
 
-        self.id: dict[str, str] = IdReader("rings_ids.json").get_id()
+        self.id_map: dict[str, str] = IdReader("rings_ids.json").get_id()
 
     @property
     def slot_1(self) -> str:
-        return self.id[str(
+        return self.id_map[str(
             self._base.pointer_walk(*self._slot_1_path).read_int()
         )]
 
     @property
     def slot_2(self) -> str:
-        return self.id[str(
+        return self.id_map[str(
             self._base.pointer_walk(*self._slot_2_path).read_int()
         )]
 
     @property
     def slot_3(self) -> str:
-        return self.id[str(
+        return self.id_map[str(
             self._base.pointer_walk(*self._slot_3_path).read_int()
         )]
 
     @property
     def slot_4(self) -> str:
-        return self.id[str(
+        return self.id_map[str(
             self._base.pointer_walk(*self._slot_4_path).read_int()
+        )]
+
+class WeaponSlot:
+    def __init__(self, base: MemoryPointer, id_path: list[int], db_path: list[int],
+    infusion_path: list[int]) -> None:
+        self._base: MemoryPointer = base
+        self.id_path: list[int] = id_path
+        self.db_path: list[int] = db_path
+        self.infusion_path: list[int] = infusion_path
+
+        self.id_map: dict[str, str] = IdReader("weapons_ids.json").get_id()
+        self.infusion_id_map: dict[str, str] = IdReader("infusions_ids.json").get_id()
+
+    @property
+    def id(self) -> int:
+        return self._base.pointer_walk(*self.id_path).read_int()
+
+    @property
+    def name(self) -> str:
+        return self.id_map[str(
+            self._base.pointer_walk(*self.id_path).read_int()
+        )]
+
+    @property
+    def durability(self) -> float:
+        return self._base.pointer_walk(*self.db_path).read_float()
+    
+    @property
+    def infusion(self) -> str:
+        return self.infusion_id_map[str(
+            self._base.pointer_walk(*self.infusion_path).read_int()
         )]
 
 class Weapons:
     def __init__(self, base: MemoryPointer,
-        slots_paths: list[list[int]]) -> None:
+        ids_paths: list[list[int]], db_paths: list[list[int]],
+        infusion_paths: list[list[int]]) -> None:
         self._base: MemoryPointer = base
-        self._slot_1_path: list[int] = slots_paths[0]
-        self._slot_2_path: list[int] = slots_paths[1]
-        self._slot_3_path: list[int] = slots_paths[2]
+        self._slot_1_id_path: list[int] = ids_paths[0]
+        self._slot_2_id_path: list[int] = ids_paths[1]
+        self._slot_3_id_path: list[int] = ids_paths[2]
 
-        self.id: dict[str, str] = IdReader("weapons_ids.json").get_id()
+        self._slot_1_db_path: list[int] = db_paths[0]
+        self._slot_2_db_path: list[int] = db_paths[1]
+        self._slot_3_db_path: list[int] = db_paths[2]
 
-        self.slot_1_l_db_path = [0xD0, 0x378, 0x28, 0x94]
-        self.slot_1_r_db_path = [0xD0, 0x378, 0x28, 0x16C]
+        self._slot_1_infusion_path: list[int] = infusion_paths[0]
+        self._slot_2_infusion_path: list[int] = infusion_paths[1]
+        self._slot_3_infusion_path: list[int] = infusion_paths[2]
 
-    @property
-    def slot_1_l_db(self) -> float:
-        return self._base.pointer_walk(*self.slot_1_l_db_path).read_float()
+        self.slot_1: WeaponSlot = WeaponSlot(
+            self._base,
+            self._slot_1_id_path,
+            self._slot_1_db_path,
+            self._slot_1_infusion_path
+        )
 
-    @property
-    def slot_1_r_db(self) -> float:
-        return self._base.pointer_walk(*self.slot_1_r_db_path).read_float()
+        self.slot_2: WeaponSlot = WeaponSlot(
+            self._base,
+            self._slot_2_id_path,
+            self._slot_2_db_path,
+            self._slot_2_infusion_path
+        )
 
-    @property
-    def slot_1(self) -> str:
-        return self.id[str(
-            self._base.pointer_walk(*self._slot_1_path).read_int()
-        )]
-
-    @property
-    def slot_2(self) -> str:
-        return self.id[str(
-            self._base.pointer_walk(*self._slot_2_path).read_int()
-        )]
-
-    @property
-    def slot_3(self) -> str:
-        return self.id[str(
-            self._base.pointer_walk(*self._slot_3_path).read_int()
-        )]
+        self.slot_3: WeaponSlot = WeaponSlot(
+            self._base,
+            self._slot_3_id_path,
+            self._slot_3_db_path,
+            self._slot_3_infusion_path
+        )
 
 class Armors:
     def __init__(self,base: MemoryPointer,
@@ -407,41 +437,49 @@ class Armors:
         self._hands_path: list[int] = slots_paths[2]
         self._legs_path: list[int] = slots_paths[3]
 
-        self.id: dict[str, str] = IdReader("armors_ids.json").get_id()
+        self.id_map: dict[str, str] = IdReader("armors_ids.json").get_id()
 
     @property
     def head(self) -> str:
-        return self.id[str(
+        return self.id_map[str(
             self._base.pointer_walk(*self._head_path).read_int()
         )]
 
     @property
     def chest(self) -> str:
-        return self.id[str(
+        return self.id_map[str(
             self._base.pointer_walk(*self._chest_path).read_int()
         )]
 
     @property
     def hands(self) -> str:
-        return self.id[str(
+        return self.id_map[str(
             self._base.pointer_walk(*self._hands_path).read_int()
         )]
 
     @property
     def legs(self) -> str:
-        return self.id[str(
+        return self.id_map[str(
             self._base.pointer_walk(*self._legs_path).read_int()
         )]
 
 class Equipment:
     def __init__(self, base: MemoryPointer, rings_paths: list[list[int]],
         r_hand_paths: list[list[int]], l_hand_paths: list[list[int]],
+        r_hand_db_paths: list[list[int]], l_hand_db_paths: list[list[int]],
+        r_hand_infusion_paths: list[list[int]], l_hand_infusion_paths: list[list[int]],
         armor_paths: list[list[int]]) -> None:
         self._base: MemoryPointer = base
         self.rings_paths: list[list[int]] = rings_paths
         self.r_hand_paths: list[list[int]] = r_hand_paths
         self.l_hand_paths: list[list[int]] = l_hand_paths
+        self.r_hand_db_paths: list[list[int]] = r_hand_db_paths
+        self.l_hand_db_paths: list[list[int]] = l_hand_db_paths
+        self.r_hand_infusion_paths: list[list[int]] = r_hand_infusion_paths
+        self.l_hand_infusion_paths: list[list[int]] = l_hand_infusion_paths
+
         self.armor_paths: list[list[int]] = armor_paths
+
 
         self.rings: Rings = Rings(
             self._base,
@@ -450,12 +488,16 @@ class Equipment:
 
         self.right_hand: Weapons = Weapons(
             self._base,
-            self.r_hand_paths
+            self.r_hand_paths,
+            self.r_hand_db_paths,
+            self.r_hand_infusion_paths
         )
 
         self.left_hand: Weapons = Weapons(
             self._base,
-            self.l_hand_paths
+            self.l_hand_paths,
+            self.l_hand_db_paths,
+            self.l_hand_infusion_paths
         )
 
         self.armor: Armors = Armors(
@@ -496,6 +538,10 @@ class MyCharacter(BaseCategory):
             rings_paths = [[0xD0, 0x378, 0x4E8 + i*4] for i in range(4)],
             r_hand_paths = [[0xD0, 0x378, 0xB0 + i*40] for i in range(3)],
             l_hand_paths = [[0xD0, 0x378, 0x9C + i*40] for i in range(3)],
+            r_hand_db_paths = [[0xD0, 0x378, 0x28, 0x16C + i*72] for i in range(3)],
+            l_hand_db_paths = [[0xD0, 0x378, 0x28, 0x94 + i*72] for i in range(3)],
+            r_hand_infusion_paths = [[0xD0, 0x378, 0x28, 0x149 + i*72] for i in range(3)],
+            l_hand_infusion_paths = [[0xD0, 0x378, 0x28, 0x71 + i*72] for i in range(3)],
             armor_paths = [[0xD0, 0x378, 0x114 + i*20] for i in range(4)]
         )
 
@@ -532,6 +578,10 @@ class Player1(BaseCategory):
             rings_paths = [[0x20, 0x1E8, 0x9AC + i*20] for i in range(4)],
             r_hand_paths = [[0x20, 0x1E8, 0x880 + i*40] for i in range(3)],
             l_hand_paths = [[0x20, 0x1E8, 0x86C + i*40] for i in range(3)],
+            r_hand_db_paths = [[0x20, 0x1E8, 0x28, 0x16C + i*72] for i in range(3)], # This path is incorrect, I need to find it.
+            l_hand_db_paths = [[0x20, 0x1E8, 0x28, 0x94 + i*72] for i in range(3)], # This path is incorrect, I need to find it.
+            r_hand_infusion_paths = [[0xD0, 0x378, 0x28, 0x149 + i*72] for i in range(3)], # This path is incorrect, I need to find it.
+            l_hand_infusion_paths = [[0xD0, 0x378, 0x28, 0x71 + i*72] for i in range(3)], # This path is incorrect, I need to find it.
             armor_paths = [[0x20, 0x1E8, 0x8E4 + i*20] for i in range(4)]
         )
 
