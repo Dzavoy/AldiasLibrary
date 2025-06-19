@@ -24,6 +24,9 @@ class IdReader:
     def get_id(self) -> dict[str, str]:
         return self.id
 
+
+# ================================ Stats ================================
+
 class Stats:
     def __init__(self, base: MemoryPointer,
         hp_paths: list[list[int]], sp_paths: list[list[int]],
@@ -110,6 +113,9 @@ class Stats:
             .read_string()[1:], 16
         )
 
+
+# ================================ Attributes ================================
+
 class Attributes:
     def __init__(self, base: MemoryPointer,
     attributes_paths: list[list[int]], sl_path: list[int]) -> None:
@@ -191,6 +197,9 @@ class Attributes:
             self._base.pointer_walk(*self.fth_path).read_bytes(2),
             byteorder='little'
         )
+
+
+# ================================ Covenant ================================
 
 class Covenant:
     def __init__(self, base: MemoryPointer,
@@ -290,6 +299,9 @@ class Covenants:
             )
         )]
 
+
+# ================================ AttackState & OnlineSession ================================
+
 class OnlineSession(BaseCategory):
     _pattern_type: PatternType = PatternType.NET_SEASON_MANAGER
 
@@ -323,6 +335,9 @@ class AttackState(BaseCategory):
             self._base.pointer_walk(0xD0, 0xC0, 0x7C).read_bytes(1),
             byteorder="little"
         )
+
+
+# ================================ Rings ================================
 
 class Rings:
     def __init__(self, base: MemoryPointer,
@@ -358,6 +373,9 @@ class Rings:
         return self.id_map[str(
             self._base.pointer_walk(*self._slot_4_path).read_int()
         )]
+
+
+# ================================ Weapons ================================
 
 class WeaponSlot:
     def __init__(self, base: MemoryPointer, id_path: list[int], db_path: list[int],
@@ -428,6 +446,9 @@ class Weapons:
             self._slot_3_infusion_path
         )
 
+
+# ================================ Armors ================================
+
 class Armors:
     def __init__(self,base: MemoryPointer,
         slots_paths: list[list[int]]) -> None:
@@ -462,6 +483,9 @@ class Armors:
         return self.id_map[str(
             self._base.pointer_walk(*self._legs_path).read_int()
         )]
+
+
+# ================================ Equipment ================================
 
 class Equipment:
     def __init__(self, base: MemoryPointer, rings_paths: list[list[int]],
@@ -505,6 +529,9 @@ class Equipment:
             self.armor_paths
         )
 
+
+# ================================ MyCharacter ================================
+
 class MyCharacter(BaseCategory):
     _pattern_type: PatternType = PatternType.GAME_MANAGER_IMP
 
@@ -544,6 +571,9 @@ class MyCharacter(BaseCategory):
             l_hand_infusion_paths = [[0xD0, 0x378, 0x28, 0x71 + i*72] for i in range(3)],
             armor_paths = [[0xD0, 0x378, 0x114 + i*20] for i in range(4)]
         )
+
+
+# ================================ Player 1 ================================
 
 class Player1(BaseCategory):
     _pattern_type: PatternType = PatternType.NET_SEASON_MANAGER
@@ -585,11 +615,17 @@ class Player1(BaseCategory):
             armor_paths = [[0x20, 0x1E8, 0x8E4 + i*20] for i in range(4)]
         )
 
+
+# ================================ Player 2 ================================
+
 class Player2(BaseCategory):
     _pattern_type: PatternType = PatternType.GAME_MANAGER_IMP
 
     def __init__(self, root: MemoryPointer) -> None:
         super().__init__(root)
+
+
+# ================================ Player 3 ================================
 
 class Player3(BaseCategory):
     _pattern_type: PatternType = PatternType.GAME_MANAGER_IMP
@@ -597,11 +633,17 @@ class Player3(BaseCategory):
     def __init__(self, root: MemoryPointer) -> None:
         super().__init__(root)
 
+
+# ================================ Player 4 ================================
+
 class Player4(BaseCategory):
     _pattern_type: PatternType = PatternType.GAME_MANAGER_IMP
 
     def __init__(self, root: MemoryPointer) -> None:
         super().__init__(root)
+
+
+# ================================ DS2Memory ================================
 
 class DS2Memory:
     def __init__(self) -> None:
