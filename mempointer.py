@@ -65,32 +65,51 @@ class MemoryPointer:
             self._process, self._module, new_address
         )
 
+
+ # ================== Read Functions ==================
+
+    # Read an integer from memory.
     def read_int(self) -> int:
         return self._process.read_int(self._address)
 
+    # Read a string from memory.
     def read_string(self) -> str:
         return self._process.read_string(self._address)
 
+    # Read a float from memory.
     def read_float(self) -> float:
         return self._process.read_float(self._address)
 
+    # Read raw bytes from memory.
     def read_bytes(self, size: int) -> bytes:
         return self._process.read_bytes(self._address, size)
 
+
+# ================== Write Functions ==================
+
+    # Write an integer to memory.
     def write_int(self, value: int) -> None:
         self._process.write_int(self._address, value)
 
+    # Write a float to memory.
     def write_float(self, value: float) -> None:
         self._process.write_float(self._address, value)
 
+    # Write a string to memory.
     def write_string(self, value: str) -> None:
         self._process.write_string(self._address, value)
 
+    # Write raw bytes to memory.
     def write_bytes(self, value: bytes, length: int) -> None:
         self._process.write_bytes(self._address, value, length)
 
+
+# ================== Utility ==================
+
+    # Return the memory address in hexadecimal format.
     def hex(self) -> str:
         return hex(self._address)
 
+    # Return the memory address as an integer.
     def __int__(self) -> int:
         return self._address
