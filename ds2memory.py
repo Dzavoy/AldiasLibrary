@@ -375,6 +375,96 @@ class Rings:
         )]
 
 
+# ======================== Weapons Phantom Buffs ========================
+
+class WeaponBuffs(BaseCategory):
+    _pattern_type: PatternType = PatternType.GAME_MANAGER_IMP
+
+    def __init__(self, root: MemoryPointer) -> None:
+        super().__init__(root)
+
+        # +0x18 -> deref
+        step1 = self._base.offset(0x18).dereference()
+
+        # +0x310 -> deref
+        step2 = step1.offset(0x310).dereference()
+
+        # +0xD8 -> deref
+        step3 = step2.offset(0xD8).dereference()
+
+        # +0x1C8 -> ONLY OFFSET (no deref)
+        self._chr_phantom_param = step3.offset(0x1C8)
+
+        # ParamStart = ChrPhantomParam + 0x60C (only offset)
+        self._param_start = self._chr_phantom_param.offset(0x60C)
+
+    def _addr(self, rel: int) -> MemoryPointer:
+        return self._param_start.offset(rel)
+
+    # magic = ParamStart + 0x254
+    @property
+    def magic(self) -> float:
+        return self._addr(0x254).read_float()
+
+    @magic.setter
+    def magic(self, value: float) -> None:
+        self._addr(0x254).write_float(value)
+    
+    # lightning = ParamStart + 0x274
+    @property
+    def lightning(self) -> float:
+        return self._addr(0x274).read_float()
+
+    @lightning.setter
+    def lightning(self, value: float) -> None:
+        self._addr(0x274).write_float(value)
+
+    # fire = ParamStart + 0x294
+    @property
+    def fire(self) -> float:
+        return self._addr(0x294).read_float()
+
+    @fire.setter
+    def fire(self, value: float) -> None:
+        self._addr(0x294).write_float(value)    
+    
+    # dark = ParamStart + 0x2B4
+    @property
+    def dark(self) -> float:
+        return self._addr(0x2B4).read_float()
+
+    @dark.setter
+    def dark(self, value: float) -> None:
+        self._addr(0x2B4).write_float(value)  
+
+    # poison = ParamStart + 0x2D4
+    @property
+    def poison(self) -> float:
+        return self._addr(0x2D4).read_float()
+
+    @poison.setter
+    def poison(self, value: float) -> None:
+        self._addr(0x2D4).write_float(value)  
+
+    # bleed = ParamStart + 0x2F4
+    @property
+    def bleed(self) -> float:
+        return self._addr(0x2F4).read_float()
+
+    @bleed.setter
+    def bleed(self, value: float) -> None:
+        self._addr(0x2F4).write_float(value) 
+
+    # great_magic = ParamStart + 0x3B4
+    @property
+    def great_magic(self) -> float:
+        return self._addr(0x3B4).read_float()
+
+    @great_magic.setter
+    def great_magic(self, value: float) -> None:
+        self._addr(0x3B4).write_float(value) 
+
+
 # ================================ Weapons ================================
 
 class WeaponSlot:
@@ -659,3 +749,4 @@ class DS2Memory:
         self.player_4: Player4 = Player4(root)
         self.online: OnlineSession = OnlineSession(root)
         self.attack_state: AttackState = AttackState(root)
+        self.weapon_buffs: WeaponBuffs = WeaponBuffs(root)
