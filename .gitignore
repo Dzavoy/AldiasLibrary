@@ -3,14 +3,12 @@ Blue Acolyte/
 ds2ranked/
 .mypy_cache
 
-enviroment.py
 json_whriter.py
+launcher.py
 main.py
 storage.py
-test.py
 test2.py
 levavantagi2000.py
-levavantagi2001.py
 
 items.json
 
