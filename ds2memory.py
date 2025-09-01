@@ -1,4 +1,4 @@
-from mempointer import MemoryPointer
+from mempointer import MemoryPointer, Utils
 import json
 from enum import Enum
 
@@ -14,7 +14,9 @@ class BaseCategory:
     def __init__(self, root: MemoryPointer) -> None:
         base: MemoryPointer = root.relocate_pattern(self._pattern_type.value)
         offset: int = base.offset(3).read_int()
-        self._base: MemoryPointer = base.offset(offset + 7).dereference() # Magic formula
+
+         # Magic formula
+        self._base: MemoryPointer = base.offset(offset + 7).dereference()
 
 class IdReader:
     def __init__(self, file_name: str) -> None:
@@ -44,7 +46,9 @@ class Stats:
         self.team_type_path: list[int] = team_type_path
         self.steam_id_path: list[int] = steam_id_path
 
-        self.id_map: dict[str, str] = IdReader("team_type_ids.json").get_id()
+        self.id_map: dict[str, str] = IdReader(
+            "team_type_ids.json"
+        ).get_id()
 
     @property
     def current_health(self) -> int:
@@ -233,58 +237,58 @@ class Covenants:
         self.rank_path: list[list[int]] = rank_path
 
         self.heirs_of_the_sun: Covenant = Covenant(
-                self._base,
-                self.points_path[0],
-                self.rank_path[0]
-            )
+            self._base,
+            self.points_path[0],
+            self.rank_path[0]
+        )
         
         self.blue_sentinels: Covenant = Covenant(
-                self._base,
-                self.points_path[1],
-                self.rank_path[1]
-            )
+            self._base,
+            self.points_path[1],
+            self.rank_path[1]
+        )
         
         self.brotherhood_of_blood: Covenant = Covenant(
-                self._base,
-                self.points_path[2],
-                self.rank_path[2]
-            )
+            self._base,
+            self.points_path[2],
+            self.rank_path[2]
+        )
 
         self.way_of_blue: Covenant = Covenant(
-                self._base,
-                self.points_path[3],
-                self.rank_path[3]
-            )
+            self._base,
+            self.points_path[3],
+            self.rank_path[3]
+        )
 
         self.rat_king: Covenant = Covenant(
-                self._base,
-                self.points_path[4],
-                self.rank_path[4]
-            )
+            self._base,
+            self.points_path[4],
+            self.rank_path[4]
+        )
 
         self.bell_keeper: Covenant = Covenant(
-                self._base,
-                self.points_path[5],
-                self.rank_path[5]
-            )
+            self._base,
+            self.points_path[5],
+            self.rank_path[5]
+        )
 
         self.dragon_remnants: Covenant = Covenant(
-                self._base,
-                self.points_path[6],
-                self.rank_path[6]
-            )
+            self._base,
+            self.points_path[6],
+            self.rank_path[6]
+        )
 
         self.company_of_champions: Covenant = Covenant(
-                self._base,
-                self.points_path[7],
-                self.rank_path[7]
-            )
+            self._base,
+            self.points_path[7],
+            self.rank_path[7]
+        )
 
         self.pilgrims_of_dark: Covenant = Covenant(
-                self._base,
-                self.points_path[8],
-                self.rank_path[8]
-            )
+            self._base,
+            self.points_path[8],
+            self.rank_path[8]
+        )
 
         self.id_map: dict[str, str] = IdReader("covenants_ids.json").get_id()
 
@@ -336,6 +340,150 @@ class AttackState(BaseCategory):
             byteorder="little"
         )
 
+    @property
+    def lock_roll_state(self) -> bool:
+        step_1: MemoryPointer = self._base.offset(0xD0).dereference()
+        step_2: MemoryPointer = step_1.offset(0xB8).dereference()
+        step_3: MemoryPointer = step_2.offset(0x4D0)
+        step_4: MemoryPointer = step_3.offset(0x8C)
+        return bool(int.from_bytes(step_4.read_bytes(1)))
+
+    @lock_roll_state.setter
+    def lock_roll_state(self, value: bool) -> None:
+        utils: Utils = Utils(value)
+        byte_val: bytes = utils.bool_to_bytes(value)
+
+        step_1: MemoryPointer = self._base.offset(0xD0).dereference()
+        step_2: MemoryPointer = step_1.offset(0xB8).dereference()
+        step_3: MemoryPointer = step_2.offset(0x4D0)
+        step_4: MemoryPointer = step_3.offset(0x8C)
+
+        step_4.write_bytes(byte_val, 1)
+
+    @property
+    def lock_stance(self) -> bool:
+        step_1: MemoryPointer = self._base.offset(0xD0).dereference()
+        step_2: MemoryPointer = step_1.offset(0xB8).dereference()
+        step_3: MemoryPointer = step_2.offset(0x4D0)
+        step_4: MemoryPointer = step_3.offset(0xC)
+        return bool(int.from_bytes(step_4.read_bytes(1)))
+
+    @lock_stance.setter
+    def lock_stance(self, value: bool) -> None:
+        utils: Utils = Utils(value)
+        byte_val: bytes = utils.bool_to_bytes(value)
+
+        step_1: MemoryPointer = self._base.offset(0xD0).dereference()
+        step_2: MemoryPointer = step_1.offset(0xB8).dereference()
+        step_3: MemoryPointer = step_2.offset(0x4D0)
+        step_4: MemoryPointer = step_3.offset(0xC)
+
+        step_4.write_bytes(byte_val, 1)
+
+    @property
+    def lock_guard(self) -> bool:
+        step_1: MemoryPointer = self._base.offset(0xD0).dereference()
+        step_2: MemoryPointer = step_1.offset(0xB8).dereference()
+        step_3: MemoryPointer = step_2.offset(0x4D0)
+        step_4: MemoryPointer = step_3.offset(0xA8)
+        return bool(int.from_bytes(step_4.read_bytes(1)))
+
+    @lock_guard.setter
+    def lock_guard(self, value: bool) -> None:
+        utils: Utils = Utils(value)
+        byte_val: bytes = utils.bool_to_bytes(value)
+
+        step_1: MemoryPointer = self._base.offset(0xD0).dereference()
+        step_2: MemoryPointer = step_1.offset(0xB8).dereference()
+        step_3: MemoryPointer = step_2.offset(0x4D0)
+        step_4: MemoryPointer = step_3.offset(0xA8)
+
+        step_4.write_bytes(byte_val, 1)
+
+    @property
+    def lock_attack_1l(self) -> bool:
+        step_1: MemoryPointer = self._base.offset(0xD0).dereference()
+        step_2: MemoryPointer = step_1.offset(0xB8).dereference()
+        step_3: MemoryPointer = step_2.offset(0x4D0)
+        step_4: MemoryPointer = step_3.offset(0x98)
+        return bool(int.from_bytes(step_4.read_bytes(1)))
+
+    @lock_attack_1l.setter
+    def lock_attack_1l(self, value: bool) -> None:
+        utils: Utils = Utils(value)
+        byte_val: bytes = utils.bool_to_bytes(value)
+
+        step_1: MemoryPointer = self._base.offset(0xD0).dereference()
+        step_2: MemoryPointer = step_1.offset(0xB8).dereference()
+        step_3: MemoryPointer = step_2.offset(0x4D0)
+        step_4: MemoryPointer = step_3.offset(0x98)
+
+        step_4.write_bytes(byte_val, 1)
+
+    @property
+    def lock_attack_1h(self) -> bool:
+        step_1: MemoryPointer = self._base.offset(0xD0).dereference()
+        step_2: MemoryPointer = step_1.offset(0xB8).dereference()
+        step_3: MemoryPointer = step_2.offset(0x4D0)
+        step_4: MemoryPointer = step_3.offset(0x9C)
+        return bool(int.from_bytes(step_4.read_bytes(1)))
+
+    @lock_attack_1h.setter
+    def lock_attack_1h(self, value: bool) -> None:
+        utils: Utils = Utils(value)
+        byte_val: bytes = utils.bool_to_bytes(value)
+
+        step_1: MemoryPointer = self._base.offset(0xD0).dereference()
+        step_2: MemoryPointer = step_1.offset(0xB8).dereference()
+        step_3: MemoryPointer = step_2.offset(0x4D0)
+        step_4: MemoryPointer = step_3.offset(0x9C)
+
+        step_4.write_bytes(byte_val, 1)
+
+    @property
+    def lock_attack_2l(self) -> bool:
+        step_1: MemoryPointer = self._base.offset(0xD0).dereference()
+        step_2: MemoryPointer = step_1.offset(0xB8).dereference()
+        step_3: MemoryPointer = step_2.offset(0x4D0)
+        step_4: MemoryPointer = step_3.offset(0xA0)
+        return bool(int.from_bytes(step_4.read_bytes(1)))
+
+    @lock_attack_2l.setter
+    def lock_attack_2l(self, value: bool) -> None:
+        utils: Utils = Utils(value)
+        byte_val: bytes = utils.bool_to_bytes(value)
+
+        step_1: MemoryPointer = self._base.offset(0xD0).dereference()
+        step_2: MemoryPointer = step_1.offset(0xB8).dereference()
+        step_3: MemoryPointer = step_2.offset(0x4D0)
+        step_4: MemoryPointer = step_3.offset(0xA0)
+
+        step_4.write_bytes(byte_val, 1)
+
+    @property
+    def lock_attack_2h(self) -> bool:
+        step_1: MemoryPointer = self._base.offset(0xD0).dereference()
+        step_2: MemoryPointer = step_1.offset(0xB8).dereference()
+        step_3: MemoryPointer = step_2.offset(0x4D0)
+        step_4: MemoryPointer = step_3.offset(0xA4)
+        return bool(int.from_bytes(step_4.read_bytes(1)))
+
+    @lock_attack_2h.setter
+    def lock_attack_2h(self, value: bool) -> None:
+        utils: Utils = Utils(value)
+        byte_val: bytes = utils.bool_to_bytes(value)
+
+        step_1: MemoryPointer = self._base.offset(0xD0).dereference()
+        step_2: MemoryPointer = step_1.offset(0xB8).dereference()
+        step_3: MemoryPointer = step_2.offset(0x4D0)
+        step_4: MemoryPointer = step_3.offset(0xA4)
+
+        step_4.write_bytes(byte_val, 1)
+
+    @property
+    def animation_state(self) -> int:
+        return int.from_bytes(self._base.pointer_walk(0xD0, 0xB8, 0x8).read_bytes(1))
+
 
 # ================================ Rings ================================
 
@@ -384,19 +532,19 @@ class WeaponBuffs(BaseCategory):
         super().__init__(root)
 
         # +0x18 -> deref
-        step1 = self._base.offset(0x18).dereference()
+        step1: MemoryPointer = self._base.offset(0x18).dereference()
 
         # +0x310 -> deref
-        step2 = step1.offset(0x310).dereference()
+        step2: MemoryPointer = step1.offset(0x310).dereference()
 
         # +0xD8 -> deref
-        step3 = step2.offset(0xD8).dereference()
+        step3: MemoryPointer = step2.offset(0xD8).dereference()
 
         # +0x1C8 -> ONLY OFFSET (no deref)
-        self._chr_phantom_param = step3.offset(0x1C8)
+        self._chr_phantom_param: MemoryPointer = step3.offset(0x1C8)
 
         # ParamStart = ChrPhantomParam + 0x60C (only offset)
-        self._param_start = self._chr_phantom_param.offset(0x60C)
+        self._param_start: MemoryPointer = self._chr_phantom_param.offset(0x60C)
 
     def _addr(self, rel: int) -> MemoryPointer:
         return self._param_start.offset(rel)
@@ -468,15 +616,18 @@ class WeaponBuffs(BaseCategory):
 # ================================ Weapons ================================
 
 class WeaponSlot:
-    def __init__(self, base: MemoryPointer, id_path: list[int], db_path: list[int],
-    infusion_path: list[int]) -> None:
+    def __init__(self, base: MemoryPointer, id_path: list[int],
+    db_path: list[int], infusion_path: list[int]) -> None:
         self._base: MemoryPointer = base
         self.id_path: list[int] = id_path
         self.db_path: list[int] = db_path
         self.infusion_path: list[int] = infusion_path
 
         self.id_map: dict[str, str] = IdReader("weapons_ids.json").get_id()
-        self.infusion_id_map: dict[str, str] = IdReader("infusions_ids.json").get_id()
+        
+        self.infusion_id_map: dict[str, str] = IdReader(
+            "infusions_ids.json"
+        ).get_id()
 
     @property
     def id(self) -> int:
@@ -594,7 +745,6 @@ class Equipment:
 
         self.armor_paths: list[list[int]] = armor_paths
 
-
         self.rings: Rings = Rings(
             self._base,
             self.rings_paths
@@ -688,8 +838,13 @@ class Player1(BaseCategory):
 
         self.covenants: Covenants = Covenants(
             self._base,
-            points_path = [[0x20, 0x1E8, 0x1C4 + i*2] for i in range(9)], # There is a high probability that this is incorrect, but I’m not certain.
-            rank_path = [[0x20, 0x1E8, 0x490, 0x1B9 + i] for i in range(9)], # There is a high probability that this is incorrect, but I’m not certain.
+
+            # There is a high probability that this is incorrect, but I’m not certain.
+            points_path = [[0x20, 0x1E8, 0x1C4 + i*2] for i in range(9)],
+
+            # There is a high probability that this is incorrect, but I’m not certain.
+            rank_path = [[0x20, 0x1E8, 0x490, 0x1B9 + i] for i in range(9)],
+            
             current_covenant_path = [0x20, 0x1E8, 0x490, 0x1AD]
         )
 
@@ -698,10 +853,19 @@ class Player1(BaseCategory):
             rings_paths = [[0x20, 0x1E8, 0x9AC + i*20] for i in range(4)],
             r_hand_paths = [[0x20, 0x1E8, 0x880 + i*40] for i in range(3)],
             l_hand_paths = [[0x20, 0x1E8, 0x86C + i*40] for i in range(3)],
-            r_hand_db_paths = [[0x20, 0x1E8, 0x28, 0x16C + i*72] for i in range(3)], # This path is incorrect, I need to find it.
-            l_hand_db_paths = [[0x20, 0x1E8, 0x28, 0x94 + i*72] for i in range(3)], # This path is incorrect, I need to find it.
-            r_hand_infusion_paths = [[0xD0, 0x378, 0x28, 0x149 + i*72] for i in range(3)], # This path is incorrect, I need to find it.
-            l_hand_infusion_paths = [[0xD0, 0x378, 0x28, 0x71 + i*72] for i in range(3)], # This path is incorrect, I need to find it.
+
+            # This path is incorrect, I need to find it.
+            r_hand_db_paths = [[0x20, 0x1E8, 0x28, 0x16C + i*72] for i in range(3)],
+
+            # This path is incorrect, I need to find it.
+            l_hand_db_paths = [[0x20, 0x1E8, 0x28, 0x94 + i*72] for i in range(3)],
+
+            # This path is incorrect, I need to find it.
+            r_hand_infusion_paths = [[0xD0, 0x378, 0x28, 0x149 + i*72] for i in range(3)],
+
+            # This path is incorrect, I need to find it.
+            l_hand_infusion_paths = [[0xD0, 0x378, 0x28, 0x71 + i*72] for i in range(3)],
+
             armor_paths = [[0x20, 0x1E8, 0x8E4 + i*20] for i in range(4)]
         )
 
