@@ -113,3 +113,14 @@ class MemoryPointer:
     # Return the memory address as an integer.
     def __int__(self) -> int:
         return self._address
+
+class Utils:
+    def __init__(self, value: Any) -> None:
+        self.value: Any = value
+
+    def bool_to_bytes(self, value: bool) -> bytes:
+        match value:
+            case True:
+                return b"\x01"
+            case False:
+                return b"\x00"
