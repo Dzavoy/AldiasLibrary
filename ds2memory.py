@@ -1,6 +1,7 @@
 from mempointer import MemoryPointer, Utils
 import json
 from enum import Enum
+from pathlib import Path
 
 class PatternType(Enum):
     GAME_MANAGER_IMP = rb"\x48\x8B\x05....\x48\x8B\x58\x38\x48\x85\xDB\x74.\xF6"
@@ -20,7 +21,8 @@ class BaseCategory:
 
 class IdReader:
     def __init__(self, file_name: str) -> None:
-        with open(file_name, "r", encoding='utf-8') as file:
+        file_path: Path = Path(f"ids/{file_name}")
+        with open(Path(file_path), "r", encoding='utf-8') as file:
             self.id: dict[str, str] = json.load(file)
 
     def get_id(self) -> dict[str, str]:
