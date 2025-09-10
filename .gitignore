@@ -1,15 +1,7 @@
-__pycache__/
-Blue Acolyte/
-ds2ranked/
+/__pycache__
 .mypy_cache
-
-json_whriter.py
-launcher.py
-main.py
-storage.py
-test2.py
-levavantagi2000.py
-
-items.json
+.venv
 
 mypy.ini
+
+main.py
