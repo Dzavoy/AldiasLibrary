@@ -905,6 +905,7 @@ class DS2Memory:
             "DarkSoulsII.exe",
             "DarkSoulsII.exe"
         )
+        
         self.my_character: MyCharacter = MyCharacter(root)
         self.player_1: Player1 = Player1(root)
         self.player_2: Player2 = Player2(root)
