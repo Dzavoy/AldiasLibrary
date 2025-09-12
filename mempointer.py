@@ -192,17 +192,7 @@ class MemoryPointer:
         return self._address
 
 class Utils:
-    #@staticmethod
-    #def bool_to_bytes(value: bool) -> bytes:
-        #return b"\x01" if value else b"\x00"
-
-    def __init__(self, value: Any) -> None:
-        self.value: Any = value
-        
-    def bool_to_bytes(self, value: bool) -> bytes:
-        match value:
-            case True:
-                return b"\x01"
-            case False:
-                return b"\x00"
-        
+    # Converts bool value to bytes
+    @staticmethod
+    def bool_to_bytes(value: bool) -> bytes:
+        return b"\x01" if value else b"\x00"
