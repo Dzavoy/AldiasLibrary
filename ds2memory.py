@@ -2,6 +2,7 @@ from mempointer import MemoryPointer, Utils
 import json
 from enum import Enum
 from pathlib import Path
+from typing import ClassVar
 
 class PatternType(Enum):
     GAME_MANAGER_IMP = rb"\x48\x8B\x05....\x48\x8B\x58\x38\x48\x85\xDB\x74.\xF6"
@@ -19,11 +20,26 @@ class BaseCategory:
          # Magic formula
         self._base: MemoryPointer = base.offset(offset + 7).dereference()
 
+    def deref_chain(self, steps: list[tuple]) -> MemoryPointer:
+        cur = self._base
+        for off, do_deref in steps:
+            cur = cur.offset(off)
+            if do_deref:
+                cur = cur.dereference()
+        return cur
+
 class IdReader:
-    def __init__(self, file_name: str) -> None:
-        file_path: Path = Path(f"ids/{file_name}")
-        with open(Path(file_path), "r", encoding='utf-8') as file:
-            self.id: dict[str, str] = json.load(file)
+    _cache: ClassVar[dict[str, dict[str, str]]] = {}
+
+    def __init__(self, file_name: str, folder: str = "ids") -> None:
+        self.path: Path = Path(folder) / file_name
+        if file_name in IdReader._cache:
+            self.id: dict[str, str] = IdReader._cache[file_name]
+            return
+        
+        with open(self.path, "r", encoding='utf-8') as f:
+            self.id = json.load(f)
+        IdReader._cache[file_name] = self.id
 
     def get_id(self) -> dict[str, str]:
         return self.id
@@ -902,11 +918,8 @@ class Player4(BaseCategory):
 # ================================ DS2Memory ================================
 
 class DS2Memory:
-    def __init__(self) -> None:
-        root: MemoryPointer = MemoryPointer(
-            "DarkSoulsII.exe",
-            "DarkSoulsII.exe"
-        )
+    def __init__(self, exe_name: str = "DarkSoulsII.exe") -> None:
+        root: MemoryPointer = MemoryPointer(exe_name, exe_name)
         
         self.my_character: MyCharacter = MyCharacter(root)
         self.player_1: Player1 = Player1(root)
