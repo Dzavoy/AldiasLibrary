@@ -20,6 +20,12 @@ class BaseCategory:
          # Magic formula
         self._base: MemoryPointer = base.offset(offset + 7).dereference()
 
+    def read_u8(self, *path: int) -> int:
+        return int.from_bytes(self._base.pointer_walk(*path).read_bytes(1), byteorder="little")
+
+    def read_u16(self, *path: int) -> int:
+        return int.from_bytes(self._base.pointer_walk(*path).read_bytes(2), byteorder="little")
+
     def deref_chain(self, steps: list[tuple]) -> MemoryPointer:
         cur = self._base
         for off, do_deref in steps:
@@ -153,72 +159,48 @@ class Attributes:
         self.int_path: list[int] = attributes_paths[6]
         self.fth_path: list[int] = attributes_paths[7]
 
+    def _r16(self, path: list[int]) -> int:
+        return int.from_bytes(self._base.pointer_walk(*path).read_bytes(2), byteorder='little')
+
     @property
     def soul_level(self) -> int:
         return self._base.pointer_walk(*self.sl_path).read_int()
 
     @property
     def vigor(self) -> int:
-        return int.from_bytes(
-            self._base.pointer_walk(*self.vgr_path).read_bytes(2),
-            byteorder='little'
-        )
+        return self._r16(self.vgr_path)
 
     @property
     def endurance(self) -> int:
-        return int.from_bytes(
-            self._base.pointer_walk(*self.end_path).read_bytes(2),
-            byteorder='little'
-        )
+        return self._r16(self.end_path)
 
     @property
     def vitality(self) -> int:
-        return int.from_bytes(
-            self._base.pointer_walk(*self.vit_path).read_bytes(2),
-            byteorder='little'
-        )
+        return self._r16(self.vit_path)
 
     @property
     def attunement(self) -> int:
-        return int.from_bytes(
-            self._base.pointer_walk(*self.atn_path).read_bytes(2),
-            byteorder='little'
-        )
+        return self._r16(self.atn_path)
 
     @property
     def strenght(self) -> int:
-        return int.from_bytes(
-            self._base.pointer_walk(*self.str_path).read_bytes(2),
-            byteorder='little'
-        )
+        return self._r16(self.str_path)
 
     @property
     def dexterity(self) -> int:
-        return int.from_bytes(
-            self._base.pointer_walk(*self.dex_path).read_bytes(2),
-            byteorder='little'
-        )
+        return self._r16(self.dex_path)
 
     @property
     def adaptability(self) -> int:
-        return int.from_bytes(
-            self._base.pointer_walk(*self.adp_path).read_bytes(2),
-            byteorder='little'
-        )
+        return self._r16(self.adp_path)
 
     @property
     def intelligence(self) -> int:
-        return int.from_bytes(
-            self._base.pointer_walk(*self.int_path).read_bytes(2),
-            byteorder='little'
-        )
+        return self._r16(self.int_path)
 
     @property
     def faith(self) -> int:
-        return int.from_bytes(
-            self._base.pointer_walk(*self.fth_path).read_bytes(2),
-            byteorder='little'
-        )
+        return self._r16(self.fth_path)
 
 
 # ================================ Covenant ================================
@@ -254,59 +236,14 @@ class Covenants:
         self.points_path: list[list[int]] = points_path
         self.rank_path: list[list[int]] = rank_path
 
-        self.heirs_of_the_sun: Covenant = Covenant(
-            self._base,
-            self.points_path[0],
-            self.rank_path[0]
-        )
-        
-        self.blue_sentinels: Covenant = Covenant(
-            self._base,
-            self.points_path[1],
-            self.rank_path[1]
-        )
-        
-        self.brotherhood_of_blood: Covenant = Covenant(
-            self._base,
-            self.points_path[2],
-            self.rank_path[2]
-        )
+        names: list[str] = [
+            "heirs_of_the_sun", "blue_sentinels", "brotherhood_of_blood",
+            "way_of_blue", "rat_king", "bell_keeper",
+            "dragon_remnants", "company_of_champions", "pilgrims_of_dark"
+        ]
 
-        self.way_of_blue: Covenant = Covenant(
-            self._base,
-            self.points_path[3],
-            self.rank_path[3]
-        )
-
-        self.rat_king: Covenant = Covenant(
-            self._base,
-            self.points_path[4],
-            self.rank_path[4]
-        )
-
-        self.bell_keeper: Covenant = Covenant(
-            self._base,
-            self.points_path[5],
-            self.rank_path[5]
-        )
-
-        self.dragon_remnants: Covenant = Covenant(
-            self._base,
-            self.points_path[6],
-            self.rank_path[6]
-        )
-
-        self.company_of_champions: Covenant = Covenant(
-            self._base,
-            self.points_path[7],
-            self.rank_path[7]
-        )
-
-        self.pilgrims_of_dark: Covenant = Covenant(
-            self._base,
-            self.points_path[8],
-            self.rank_path[8]
-        )
+        for name, pts, rk in zip(names, points_path, rank_path):
+            setattr(self, name, Covenant(self._base, pts, rk))
 
         self.id_map: dict[str, str] = IdReader("covenants_ids.json").get_id()
 
@@ -341,8 +278,29 @@ class OnlineSession(BaseCategory):
 class AttackState(BaseCategory):
     _pattern_type: PatternType = PatternType.GAME_MANAGER_IMP
 
+    _chain_template: list[tuple[int, bool]] = [(0xD0, True), (0xB8, True), (0x4D0, False)]
+    _flag_offsets: dict[str, int] = {
+        "lock_roll_state": 0x8C,
+        "lock_stance": 0xC,
+        "lock_guard": 0xA8,
+        "lock_attack_1l": 0x98,
+        "lock_attack_1h": 0x9C,
+        "lock_attack_2l": 0xA0,
+        "lock_attack_2h": 0xA4,
+    }
+
     def __init__(self, root: MemoryPointer) -> None:
         super().__init__(root)
+
+    def _read_flag(self, name: str) -> bool:
+        off: int = self._flag_offsets[name]
+        ptr: MemoryPointer = self.deref_chain(self._chain_template + [(off, False)])
+        return bool(int.from_bytes(ptr.read_bytes(1), byteorder="little"))
+
+    def _write_flag(self, name: str, value: bool) -> None:
+        off: int = self._flag_offsets[name]
+        ptr: MemoryPointer = self.deref_chain(self._chain_template + [(off, False)])
+        ptr.write_bytes(Utils.bool_to_bytes(value), 1)
 
     @property
     def guard_state_1(self) -> int:
@@ -360,143 +318,59 @@ class AttackState(BaseCategory):
 
     @property
     def lock_roll_state(self) -> bool:
-        step_1: MemoryPointer = self._base.offset(0xD0).dereference()
-        step_2: MemoryPointer = step_1.offset(0xB8).dereference()
-        step_3: MemoryPointer = step_2.offset(0x4D0)
-        step_4: MemoryPointer = step_3.offset(0x8C)
-        return bool(int.from_bytes(step_4.read_bytes(1)))
+        return self._read_flag("lock_roll_state")
 
     @lock_roll_state.setter
     def lock_roll_state(self, value: bool) -> None:
-        utils: Utils = Utils(value)
-        byte_val: bytes = utils.bool_to_bytes(value)
-
-        step_1: MemoryPointer = self._base.offset(0xD0).dereference()
-        step_2: MemoryPointer = step_1.offset(0xB8).dereference()
-        step_3: MemoryPointer = step_2.offset(0x4D0)
-        step_4: MemoryPointer = step_3.offset(0x8C)
-
-        step_4.write_bytes(byte_val, 1)
+        self._write_flag("lock_roll_state", value)
 
     @property
     def lock_stance(self) -> bool:
-        step_1: MemoryPointer = self._base.offset(0xD0).dereference()
-        step_2: MemoryPointer = step_1.offset(0xB8).dereference()
-        step_3: MemoryPointer = step_2.offset(0x4D0)
-        step_4: MemoryPointer = step_3.offset(0xC)
-        return bool(int.from_bytes(step_4.read_bytes(1)))
+        return self._read_flag("lock_stance")
 
     @lock_stance.setter
     def lock_stance(self, value: bool) -> None:
-        utils: Utils = Utils(value)
-        byte_val: bytes = utils.bool_to_bytes(value)
-
-        step_1: MemoryPointer = self._base.offset(0xD0).dereference()
-        step_2: MemoryPointer = step_1.offset(0xB8).dereference()
-        step_3: MemoryPointer = step_2.offset(0x4D0)
-        step_4: MemoryPointer = step_3.offset(0xC)
-
-        step_4.write_bytes(byte_val, 1)
+        self._write_flag("lock_stance", value)
 
     @property
     def lock_guard(self) -> bool:
-        step_1: MemoryPointer = self._base.offset(0xD0).dereference()
-        step_2: MemoryPointer = step_1.offset(0xB8).dereference()
-        step_3: MemoryPointer = step_2.offset(0x4D0)
-        step_4: MemoryPointer = step_3.offset(0xA8)
-        return bool(int.from_bytes(step_4.read_bytes(1)))
+        return self._read_flag("lock_guard")
 
     @lock_guard.setter
     def lock_guard(self, value: bool) -> None:
-        utils: Utils = Utils(value)
-        byte_val: bytes = utils.bool_to_bytes(value)
-
-        step_1: MemoryPointer = self._base.offset(0xD0).dereference()
-        step_2: MemoryPointer = step_1.offset(0xB8).dereference()
-        step_3: MemoryPointer = step_2.offset(0x4D0)
-        step_4: MemoryPointer = step_3.offset(0xA8)
-
-        step_4.write_bytes(byte_val, 1)
+        self._write_flag("lock_guard", value)
 
     @property
     def lock_attack_1l(self) -> bool:
-        step_1: MemoryPointer = self._base.offset(0xD0).dereference()
-        step_2: MemoryPointer = step_1.offset(0xB8).dereference()
-        step_3: MemoryPointer = step_2.offset(0x4D0)
-        step_4: MemoryPointer = step_3.offset(0x98)
-        return bool(int.from_bytes(step_4.read_bytes(1)))
+        return self._read_flag("lock_attack_1l")
 
     @lock_attack_1l.setter
     def lock_attack_1l(self, value: bool) -> None:
-        utils: Utils = Utils(value)
-        byte_val: bytes = utils.bool_to_bytes(value)
-
-        step_1: MemoryPointer = self._base.offset(0xD0).dereference()
-        step_2: MemoryPointer = step_1.offset(0xB8).dereference()
-        step_3: MemoryPointer = step_2.offset(0x4D0)
-        step_4: MemoryPointer = step_3.offset(0x98)
-
-        step_4.write_bytes(byte_val, 1)
+        self._write_flag("lock_attack_1l", value)
 
     @property
     def lock_attack_1h(self) -> bool:
-        step_1: MemoryPointer = self._base.offset(0xD0).dereference()
-        step_2: MemoryPointer = step_1.offset(0xB8).dereference()
-        step_3: MemoryPointer = step_2.offset(0x4D0)
-        step_4: MemoryPointer = step_3.offset(0x9C)
-        return bool(int.from_bytes(step_4.read_bytes(1)))
+        return self._read_flag("lock_attack_1h")
 
     @lock_attack_1h.setter
     def lock_attack_1h(self, value: bool) -> None:
-        utils: Utils = Utils(value)
-        byte_val: bytes = utils.bool_to_bytes(value)
-
-        step_1: MemoryPointer = self._base.offset(0xD0).dereference()
-        step_2: MemoryPointer = step_1.offset(0xB8).dereference()
-        step_3: MemoryPointer = step_2.offset(0x4D0)
-        step_4: MemoryPointer = step_3.offset(0x9C)
-
-        step_4.write_bytes(byte_val, 1)
+        self._write_flag("lock_attack_1h", value)
 
     @property
     def lock_attack_2l(self) -> bool:
-        step_1: MemoryPointer = self._base.offset(0xD0).dereference()
-        step_2: MemoryPointer = step_1.offset(0xB8).dereference()
-        step_3: MemoryPointer = step_2.offset(0x4D0)
-        step_4: MemoryPointer = step_3.offset(0xA0)
-        return bool(int.from_bytes(step_4.read_bytes(1)))
+        return self._read_flag("lock_attack_2l")
 
     @lock_attack_2l.setter
     def lock_attack_2l(self, value: bool) -> None:
-        utils: Utils = Utils(value)
-        byte_val: bytes = utils.bool_to_bytes(value)
-
-        step_1: MemoryPointer = self._base.offset(0xD0).dereference()
-        step_2: MemoryPointer = step_1.offset(0xB8).dereference()
-        step_3: MemoryPointer = step_2.offset(0x4D0)
-        step_4: MemoryPointer = step_3.offset(0xA0)
-
-        step_4.write_bytes(byte_val, 1)
+        self._write_flag("lock_attack_2l", value)
 
     @property
     def lock_attack_2h(self) -> bool:
-        step_1: MemoryPointer = self._base.offset(0xD0).dereference()
-        step_2: MemoryPointer = step_1.offset(0xB8).dereference()
-        step_3: MemoryPointer = step_2.offset(0x4D0)
-        step_4: MemoryPointer = step_3.offset(0xA4)
-        return bool(int.from_bytes(step_4.read_bytes(1)))
+        return self._read_flag("lock_attack_2h")
 
     @lock_attack_2h.setter
     def lock_attack_2h(self, value: bool) -> None:
-        utils: Utils = Utils(value)
-        byte_val: bytes = utils.bool_to_bytes(value)
-
-        step_1: MemoryPointer = self._base.offset(0xD0).dereference()
-        step_2: MemoryPointer = step_1.offset(0xB8).dereference()
-        step_3: MemoryPointer = step_2.offset(0x4D0)
-        step_4: MemoryPointer = step_3.offset(0xA4)
-
-        step_4.write_bytes(byte_val, 1)
+        self._write_flag("lock_attack_2h", value)
 
     @property
     def animation_state(self) -> int:
