@@ -20,12 +20,6 @@ class BaseCategory:
          # Magic formula
         self._base: MemoryPointer = base.offset(offset + 7).dereference()
 
-    def read_u8(self, *path: int) -> int:
-        return int.from_bytes(self._base.pointer_walk(*path).read_bytes(1), byteorder="little")
-
-    def read_u16(self, *path: int) -> int:
-        return int.from_bytes(self._base.pointer_walk(*path).read_bytes(2), byteorder="little")
-
     def deref_chain(self, steps: list[tuple]) -> MemoryPointer:
         cur = self._base
         for off, do_deref in steps:
