@@ -37,7 +37,7 @@ class BaseCategory:
 class IdReader:
     _cache: ClassVar[dict[str, dict[str, str]]] = {}
 
-    def __init__(self, file_name: str, folder: str = "ids") -> None:
+    def __init__(self, file_name: str, folder: str = "src/ids") -> None:
         self.path: Path = Path(folder) / file_name
         if file_name in IdReader._cache:
             self.id: dict[str, str] = IdReader._cache[file_name]
